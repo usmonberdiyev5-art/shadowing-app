@@ -31,6 +31,61 @@ function submitName() {
 
 if (!getUsername()) showNameModal();
 
+// ---------- Admin tizimi ----------
+function getAdminPassword() {
+  return sessionStorage.getItem('shadowing_admin_pw'); // brauzer yopilganda tozalanadi
+}
+
+function isAdmin() {
+  return !!getAdminPassword();
+}
+
+function updateAdminUI() {
+  document.getElementById('upload-tab-btn').style.display = isAdmin() ? 'inline-block' : 'none';
+}
+
+document.getElementById('admin-login-btn').addEventListener('click', () => {
+  if (isAdmin()) {
+    // Admin allaqachon kirgan bo'lsa, tugma chiqish (logout) vazifasini bajaradi
+    if (confirm("Admin rejimidan chiqmoqchimisiz?")) {
+      sessionStorage.removeItem('shadowing_admin_pw');
+      updateAdminUI();
+      switchTab('lessons');
+    }
+    return;
+  }
+  document.getElementById('admin-modal').classList.add('active');
+  document.getElementById('admin-password-input').value = '';
+  document.getElementById('admin-error').style.display = 'none';
+});
+
+document.getElementById('admin-password-submit').addEventListener('click', submitAdminPassword);
+document.getElementById('admin-password-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitAdminPassword();
+});
+
+async function submitAdminPassword() {
+  const pw = document.getElementById('admin-password-input').value;
+  try {
+    const res = await fetch(`${API_BASE}/admin/check`, {
+      method: 'POST',
+      headers: { 'x-admin-password': pw }
+    });
+    if (res.ok) {
+      sessionStorage.setItem('shadowing_admin_pw', pw);
+      document.getElementById('admin-modal').classList.remove('active');
+      updateAdminUI();
+    } else {
+      document.getElementById('admin-error').style.display = 'block';
+    }
+  } catch (err) {
+    document.getElementById('admin-error').textContent = "Serverga ulanib bo'lmadi";
+    document.getElementById('admin-error').style.display = 'block';
+  }
+}
+
+updateAdminUI();
+
 // ---------- Tab almashtirish ----------
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
@@ -103,7 +158,7 @@ async function loadLessons() {
       const card = document.createElement('div');
       card.className = 'lesson-card';
       card.innerHTML = `
-        <button class="delete-btn" title="O'chirish">✕</button>
+        ${isAdmin() ? '<button class="delete-btn" title="O\'chirish">✕</button>' : ''}
         <span class="badge">${lesson.media_type === 'video' ? '🎬 Video' : '🎧 Audio'}</span>
         <h3>${escapeHtml(lesson.title)}</h3>
         <p class="muted" style="font-size:12px;margin:0;">${lesson.created_at}</p>
@@ -112,13 +167,19 @@ async function loadLessons() {
         if (e.target.classList.contains('delete-btn')) return;
         openPlayer(lesson.id);
       });
-      card.querySelector('.delete-btn').addEventListener('click', async (e) => {
-        e.stopPropagation();
-        if (confirm(`"${lesson.title}" darsini o'chirmoqchimisiz?`)) {
-          await fetch(`${API_BASE}/lessons/${lesson.id}`, { method: 'DELETE' });
-          loadLessons();
-        }
-      });
+      const deleteBtn = card.querySelector('.delete-btn');
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (confirm(`"${lesson.title}" darsini o'chirmoqchimisiz?`)) {
+            await fetch(`${API_BASE}/lessons/${lesson.id}`, {
+              method: 'DELETE',
+              headers: { 'x-admin-password': getAdminPassword() || '' }
+            });
+            loadLessons();
+          }
+        });
+      }
       container.appendChild(card);
     });
   } catch (err) {
@@ -156,7 +217,11 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
   status.style.color = 'var(--text-muted)';
 
   try {
-    const res = await fetch(`${API_BASE}/lessons`, { method: 'POST', body: formData });
+    const res = await fetch(`${API_BASE}/lessons`, {
+      method: 'POST',
+      headers: { 'x-admin-password': getAdminPassword() || '' },
+      body: formData
+    });
     const data = await res.json();
     if (data.success) {
       status.textContent = '✅ Dars muvaffaqiyatli qo\'shildi!';
