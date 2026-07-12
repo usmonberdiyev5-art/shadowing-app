@@ -1,0 +1,324 @@
+/* Shadowing for English — "recording studio" mavzusi */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --bg: #14161c;
+  --bg-panel: #1c1f28;
+  --bg-panel-2: #232732;
+  --line: #2e323d;
+  --text: #e8e9ed;
+  --text-muted: #8b8f9c;
+  --accent: #4ECDC4;      /* teal - faol / progress */
+  --accent-warm: #F2A65A; /* amber - rec / diqqat */
+  --danger: #e8615c;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-panel);
+}
+
+.topbar h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+nav { display: flex; gap: 8px; }
+
+.tab-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.tab-btn:hover { color: var(--text); border-color: var(--accent); }
+.tab-btn.active { background: var(--accent); color: #0c1210; border-color: var(--accent); }
+
+main { max-width: 900px; margin: 0 auto; padding: 32px 24px 80px; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.muted { color: var(--text-muted); }
+
+/* Darslar ro'yxati */
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.lesson-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  position: relative;
+}
+.lesson-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+.lesson-card .badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: var(--bg-panel-2);
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.lesson-card h3 {
+  font-size: 16px;
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.lesson-card .delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+}
+.lesson-card .delete-btn:hover { color: var(--danger); }
+
+/* Forma */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 14px;
+}
+
+input[type="text"], input[type="file"], textarea {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+textarea { font-family: 'JetBrains Mono', monospace; font-size: 13px; resize: vertical; }
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button[type="submit"] {
+  margin-top: 20px;
+  background: var(--accent);
+  color: #0c1210;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+}
+button[type="submit"]:hover { filter: brightness(1.08); }
+
+#upload-status { margin-top: 12px; font-size: 14px; }
+
+/* Ism kiritish oynasi */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 14, 0.85);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+
+.modal-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+  width: 90%;
+  max-width: 360px;
+  text-align: center;
+}
+.modal-box h2 { font-family: 'Space Grotesk', sans-serif; margin: 0 0 6px; font-size: 20px; }
+.modal-box p { margin: 0 0 18px; font-size: 14px; }
+.modal-box input {
+  width: 100%;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px;
+  font-size: 15px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.modal-box input:focus { outline: none; border-color: var(--accent); }
+.modal-box button {
+  width: 100%;
+  background: var(--accent);
+  color: #0c1210;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* Qatnashuvchilar ro'yxati */
+.participants-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.participant-chip {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--text);
+}
+.participant-chip.you {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Pleer */
+#back-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 0 16px;
+}
+
+#media-container video, #media-container audio {
+  width: 100%;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+
+.transcript-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.transcript-line {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--bg-panel);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.transcript-line:hover { border-color: var(--line); }
+
+.transcript-line .timestamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 44px;
+}
+
+.transcript-line .content { flex: 1; }
+.transcript-line .en { font-size: 15px; }
+.transcript-line .uz { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* Faol qator — REC-nuqta uslubi bilan diqqat tortadi */
+.transcript-line.active {
+  background: rgba(78, 205, 196, 0.1);
+  border-color: var(--accent);
+}
+.transcript-line.active .timestamp {
+  color: var(--accent-warm);
+}
+.transcript-line.active .timestamp::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-warm);
+  margin-right: 6px;
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.transcript-line .repeat-btn {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.transcript-line .repeat-btn:hover { color: var(--accent); border-color: var(--accent); }

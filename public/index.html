@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shadowing for English</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ISM KIRITISH OYNASI -->
+<div id="name-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Xush kelibsiz! 👋</h2>
+    <p class="muted">Darslarda qatnashish uchun ismingizni kiriting</p>
+    <input type="text" id="name-input" placeholder="Ismingiz" maxlength="40">
+    <button id="name-submit">Boshlash</button>
+  </div>
+</div>
+
+<header class="topbar">
+  <h1>🎧 Shadowing for English</h1>
+  <nav>
+    <button class="tab-btn active" data-tab="lessons">Darslar</button>
+    <button class="tab-btn" data-tab="upload">Yangi dars qo'shish</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- DARSLAR RO'YXATI -->
+  <section id="tab-lessons" class="tab-content active">
+    <h2>Darslar ro'yxati</h2>
+    <div id="lessons-list" class="lessons-grid">
+      <p class="muted">Yuklanmoqda...</p>
+    </div>
+  </section>
+
+  <!-- YANGI DARS QO'SHISH -->
+  <section id="tab-upload" class="tab-content">
+    <h2>Yangi dars qo'shish</h2>
+    <form id="upload-form">
+      <label>Dars nomi</label>
+      <input type="text" id="lesson-title" placeholder="Masalan: IELTS Listening - Part 2" required>
+
+      <label>Audio yoki Video fayl</label>
+      <input type="file" id="media-file" accept="audio/*,video/*" required>
+
+      <label>Transcript (har bir qatorda: <code>00:00-00:05 | Matn | Tarjima</code>)</label>
+      <textarea id="transcript-input" rows="10" placeholder="00:00-00:04 | After several years of teaching | Bir necha yillik o'qituvchilikdan so'ng
+00:04-00:09 | I came to the conclusion that... | Men shunday xulosaga keldimki..."></textarea>
+
+      <button type="submit">Darsni yuklash</button>
+    </form>
+    <p id="upload-status"></p>
+  </section>
+
+  <!-- PLEER -->
+  <section id="tab-player" class="tab-content">
+    <button id="back-btn">← Darslar ro'yxatiga qaytish</button>
+    <h2 id="player-title"></h2>
+    <div id="media-container"></div>
+    <div id="participants-box" class="participants-box"></div>
+    <div id="transcript-list" class="transcript-list"></div>
+  </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
