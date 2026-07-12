@@ -21,10 +21,7 @@ document.getElementById('name-input').addEventListener('keydown', (e) => {
 function submitName() {
   const input = document.getElementById('name-input');
   const name = input.value.trim();
-  if (!name) {
-    input.style.borderColor = 'var(--danger)';
-    return;
-  }
+  if (!name) { input.style.borderColor = 'var(--danger)'; return; }
   localStorage.setItem('shadowing_username', name);
   document.getElementById('name-modal').classList.remove('active');
 }
@@ -32,13 +29,8 @@ function submitName() {
 if (!getUsername()) showNameModal();
 
 // ---------- Admin tizimi ----------
-function getAdminPassword() {
-  return sessionStorage.getItem('shadowing_admin_pw'); // brauzer yopilganda tozalanadi
-}
-
-function isAdmin() {
-  return !!getAdminPassword();
-}
+function getAdminPassword() { return sessionStorage.getItem('shadowing_admin_pw'); }
+function isAdmin() { return !!getAdminPassword(); }
 
 function updateAdminUI() {
   document.getElementById('upload-tab-btn').style.display = isAdmin() ? 'inline-block' : 'none';
@@ -46,7 +38,6 @@ function updateAdminUI() {
 
 document.getElementById('admin-login-btn').addEventListener('click', () => {
   if (isAdmin()) {
-    // Admin allaqachon kirgan bo'lsa, tugma chiqish (logout) vazifasini bajaradi
     if (confirm("Admin rejimidan chiqmoqchimisiz?")) {
       sessionStorage.removeItem('shadowing_admin_pw');
       updateAdminUI();
@@ -67,10 +58,7 @@ document.getElementById('admin-password-input').addEventListener('keydown', (e) 
 async function submitAdminPassword() {
   const pw = document.getElementById('admin-password-input').value;
   try {
-    const res = await fetch(`${API_BASE}/admin/check`, {
-      method: 'POST',
-      headers: { 'x-admin-password': pw }
-    });
+    const res = await fetch(`${API_BASE}/admin/check`, { method: 'POST', headers: { 'x-admin-password': pw } });
     if (res.ok) {
       sessionStorage.setItem('shadowing_admin_pw', pw);
       document.getElementById('admin-modal').classList.remove('active');
@@ -87,7 +75,7 @@ async function submitAdminPassword() {
 updateAdminUI();
 
 // ---------- Tab almashtirish ----------
-document.querySelectorAll('.tab-btn').forEach(btn => {
+document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
@@ -96,6 +84,8 @@ function switchTab(tabName) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-' + tabName).classList.add('active');
   if (tabName === 'lessons') loadLessons();
+  if (tabName === 'leaderboard') loadLeaderboard();
+  if (tabName === 'profile') loadProfile();
 }
 
 document.getElementById('back-btn').addEventListener('click', () => {
@@ -103,14 +93,13 @@ document.getElementById('back-btn').addEventListener('click', () => {
   switchTab('lessons');
 });
 
-// ---------- "MM:SS-MM:SS" ni soniyaga aylantirish ----------
+// ---------- Vaqt yordamchi funksiyalari ----------
 function timeToSeconds(str) {
   const parts = str.trim().split(':').map(Number);
   if (parts.length === 2) return parts[0] * 60 + parts[1];
   if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
   return parseFloat(str) || 0;
 }
-
 function secondsToLabel(sec) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
@@ -118,7 +107,6 @@ function secondsToLabel(sec) {
 }
 
 // ---------- Transcript matnini JSON'ga parse qilish ----------
-// Format: 00:00-00:05 | English text | Uzbek tarjima (ixtiyoriy)
 function parseTranscript(raw) {
   const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
   const result = [];
@@ -128,17 +116,64 @@ function parseTranscript(raw) {
     const text = segments[1];
     const translation = segments[2] || '';
     if (!timeRange || !text) continue;
-
     const [startStr, endStr] = timeRange.split('-');
     result.push({
       start_time: timeToSeconds(startStr),
       end_time: timeToSeconds(endStr || startStr),
-      text,
-      translation
+      text, translation
     });
   }
   return result;
 }
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ---------- Deterministik "waveform" generatsiyasi (dars kartochkasi uchun imzo vizuali) ----------
+function seededRandom(seed) {
+  let s = seed;
+  return function () {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+
+function generateWaveformSVG(seedStr, barCount = 40) {
+  let seed = 0;
+  for (let i = 0; i < seedStr.length; i++) seed += seedStr.charCodeAt(i) * (i + 1);
+  const rand = seededRandom(seed || 1);
+
+  const width = 300, height = 36, gap = 2;
+  const barWidth = (width / barCount) - gap;
+  let bars = '';
+  for (let i = 0; i < barCount; i++) {
+    const h = 6 + rand() * (height - 6);
+    const x = i * (barWidth + gap);
+    const y = (height - h) / 2;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5"/>`;
+  }
+  return `<svg class="waveform" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">${bars}</svg>`;
+}
+
+// Hero fonidagi katta waveform (bir marta chiziladi)
+(function renderHeroWave() {
+  const g = document.querySelector('.hero-bars');
+  if (!g) return;
+  const rand = seededRandom(42);
+  let bars = '';
+  const barCount = 60, width = 400, height = 120, gap = 2;
+  const barWidth = (width / barCount) - gap;
+  for (let i = 0; i < barCount; i++) {
+    const h = 10 + rand() * (height - 10);
+    const x = i * (barWidth + gap);
+    const y = (height - h) / 2;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barWidth.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="var(--accent)" opacity="0.5"/>`;
+  }
+  g.innerHTML = bars;
+})();
 
 // ---------- Darslar ro'yxatini yuklash ----------
 async function loadLessons() {
@@ -148,20 +183,28 @@ async function loadLessons() {
     const res = await fetch(`${API_BASE}/lessons`);
     const lessons = await res.json();
 
+    document.getElementById('stat-lessons').textContent = lessons.length;
+    // Umumiy qatnashuvchilar sonini reyting orqali baholaymiz (taxminiy)
+    fetch(`${API_BASE}/leaderboard`).then(r => r.json()).then(lb => {
+      document.getElementById('stat-participants').textContent = lb.length;
+    }).catch(() => {});
+
     if (lessons.length === 0) {
       container.innerHTML = '<p class="muted">Hozircha darslar yo\'q. "Yangi dars qo\'shish" bo\'limidan boshlang.</p>';
       return;
     }
 
     container.innerHTML = '';
-    lessons.forEach(lesson => {
+    lessons.forEach((lesson, idx) => {
       const card = document.createElement('div');
       card.className = 'lesson-card';
+      card.style.animationDelay = (idx * 0.05) + 's';
       card.innerHTML = `
         ${isAdmin() ? '<button class="delete-btn" title="O\'chirish">✕</button>' : ''}
+        ${generateWaveformSVG(lesson.title + lesson.id)}
         <span class="badge">${lesson.media_type === 'video' ? '🎬 Video' : '🎧 Audio'}</span>
         <h3>${escapeHtml(lesson.title)}</h3>
-        <p class="muted" style="font-size:12px;margin:0;">${lesson.created_at}</p>
+        <p class="muted" style="font-size:12px;margin:0;">${new Date(lesson.created_at).toLocaleDateString()}</p>
       `;
       card.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-btn')) return;
@@ -183,14 +226,8 @@ async function loadLessons() {
       container.appendChild(card);
     });
   } catch (err) {
-    container.innerHTML = `<p class="muted">Backend bilan bog'lanib bo'lmadi. Server ishga tushganini tekshiring (localhost:3001).</p>`;
+    container.innerHTML = `<p class="muted">Backend bilan bog'lanib bo'lmadi. Server ishga tushganini tekshiring.</p>`;
   }
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 
 // ---------- Yangi dars yuklash formasi ----------
@@ -241,6 +278,7 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
 // ---------- Pleer ----------
 let currentLesson = null;
 let mediaEl = null;
+let practicedLineIds = new Set();
 
 async function openPlayer(lessonId) {
   const res = await fetch(`${API_BASE}/lessons/${lessonId}`);
@@ -253,12 +291,24 @@ async function openPlayer(lessonId) {
   container.innerHTML = `<${tag} id="player-media" controls src="${MEDIA_BASE}/${currentLesson.media_filename}"></${tag}>`;
   mediaEl = document.getElementById('player-media');
 
-  renderTranscript();
-
   mediaEl.addEventListener('timeupdate', onTimeUpdate);
 
-  // Ism bilan darsga "qo'shilish" va qatnashuvchilar ro'yxatini ko'rsatish
   const username = getUsername();
+
+  // Progress: qaysi qatorlarni mashq qilgani
+  practicedLineIds = new Set();
+  if (username) {
+    try {
+      const pRes = await fetch(`${API_BASE}/lessons/${lessonId}/my-progress?name=${encodeURIComponent(username)}`);
+      const pData = await pRes.json();
+      practicedLineIds = new Set(pData.practicedLineIds);
+    } catch (err) {}
+  }
+
+  renderTranscript();
+  updateProgressBar();
+
+  // Ism bilan darsga "qo'shilish" va qatnashuvchilar ro'yxatini ko'rsatish
   if (username) {
     fetch(`${API_BASE}/lessons/${lessonId}/join`, {
       method: 'POST',
@@ -277,21 +327,24 @@ async function loadParticipants(lessonId) {
   try {
     const res = await fetch(`${API_BASE}/lessons/${lessonId}/participants`);
     const list = await res.json();
-    if (list.length === 0) {
-      box.innerHTML = '<span>Hozircha hech kim qatnashmagan</span>';
-      return;
-    }
+    if (list.length === 0) { box.innerHTML = '<span>Hozircha hech kim qatnashmagan</span>'; return; }
     const me = getUsername();
     box.innerHTML = '👥 Qatnashganlar: ' + list.map(p =>
       `<span class="participant-chip ${p.name.toLowerCase() === (me || '').toLowerCase() ? 'you' : ''}">${escapeHtml(p.name)}</span>`
     ).join('');
-  } catch (err) {
-    box.innerHTML = '';
-  }
+  } catch (err) { box.innerHTML = ''; }
 }
 
 function stopActiveMedia() {
   if (mediaEl) { mediaEl.pause(); mediaEl.removeEventListener('timeupdate', onTimeUpdate); }
+}
+
+function updateProgressBar() {
+  const total = currentLesson.lines.length;
+  const done = practicedLineIds.size;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progress-bar-fill').style.width = pct + '%';
+  document.getElementById('progress-bar-label').textContent = pct + '%';
 }
 
 function renderTranscript() {
@@ -299,9 +352,10 @@ function renderTranscript() {
   list.innerHTML = '';
   currentLesson.lines.forEach(line => {
     const row = document.createElement('div');
-    row.className = 'transcript-line';
+    row.className = 'transcript-line' + (practicedLineIds.has(line.id) ? ' practiced' : '');
     row.dataset.start = line.start_time;
     row.dataset.end = line.end_time;
+    row.dataset.lineId = line.id;
     row.innerHTML = `
       <span class="timestamp">${secondsToLabel(line.start_time)}</span>
       <div class="content">
@@ -315,31 +369,103 @@ function renderTranscript() {
       mediaEl.play();
     });
     row.querySelector('.repeat-btn').addEventListener('click', () => {
-      // Faqat shu jumlaning boshiga o'tib, bir marta o'ynaydi — keyin davom etaveradi
       mediaEl.currentTime = line.start_time;
       mediaEl.play();
-
-      // Progress belgilash (bazaga yozish)
-      fetch(`${API_BASE}/progress`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lesson_id: currentLesson.id, line_id: line.id })
-      }).catch(() => {});
+      markLinePracticed(row, line.id);
     });
     list.appendChild(row);
   });
 }
 
+function markLinePracticed(row, lineId) {
+  const username = getUsername();
+  if (!practicedLineIds.has(lineId)) {
+    practicedLineIds.add(lineId);
+    row.classList.add('practiced');
+    updateProgressBar();
+  }
+  fetch(`${API_BASE}/progress`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lesson_id: currentLesson.id, line_id: lineId, name: username || 'Mehmon' })
+  }).catch(() => {});
+}
+
 function onTimeUpdate() {
   const t = mediaEl.currentTime;
-
-  // Faol qatorni belgilash
   document.querySelectorAll('.transcript-line').forEach(row => {
     const start = parseFloat(row.dataset.start);
     const end = parseFloat(row.dataset.end);
     row.classList.toggle('active', t >= start && t < end);
   });
 }
+
+// ---------- Reyting ----------
+async function loadLeaderboard() {
+  const box = document.getElementById('leaderboard-list');
+  box.innerHTML = '<p class="muted" style="padding:20px;">Yuklanmoqda...</p>';
+  try {
+    const res = await fetch(`${API_BASE}/leaderboard`);
+    const list = await res.json();
+    if (list.length === 0) {
+      box.innerHTML = '<p class="muted" style="padding:20px;">Hozircha hech kim faollik ko\'rsatmagan.</p>';
+      return;
+    }
+    const me = (getUsername() || '').toLowerCase();
+    const medalClass = ['gold', 'silver', 'bronze'];
+    box.innerHTML = list.map((entry, i) => `
+      <div class="leaderboard-row ${entry.name.toLowerCase() === me ? 'me' : ''}">
+        <span class="lb-rank ${medalClass[i] || ''}">${i + 1}</span>
+        <span class="lb-name">${escapeHtml(entry.name)}</span>
+        <div class="lb-stats">
+          <span><b>${entry.totalRepeats}</b> takrorlash</span>
+          <span><b>${entry.lessonsJoined}</b> dars</span>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    box.innerHTML = '<p class="muted" style="padding:20px;">Reytingni yuklab bo\'lmadi.</p>';
+  }
+}
+
+// ---------- Profil ----------
+async function loadProfile() {
+  const username = getUsername() || '';
+  document.getElementById('profile-name-input').value = username;
+  const statsBox = document.getElementById('profile-stats');
+  statsBox.innerHTML = '<p class="muted">Yuklanmoqda...</p>';
+
+  try {
+    const res = await fetch(`${API_BASE}/leaderboard`);
+    const list = await res.json();
+    const mine = list.find(e => e.name.toLowerCase() === username.toLowerCase());
+    if (mine) {
+      statsBox.innerHTML = `
+        <div class="profile-stat"><span class="profile-stat-num">${mine.totalRepeats}</span><span class="profile-stat-label">Takrorlash</span></div>
+        <div class="profile-stat"><span class="profile-stat-num">${mine.lessonsJoined}</span><span class="profile-stat-label">Qatnashilgan dars</span></div>
+      `;
+    } else {
+      statsBox.innerHTML = '<p class="muted">Hali hech qanday dars mashq qilmadingiz.</p>';
+    }
+  } catch (err) {
+    statsBox.innerHTML = '';
+  }
+}
+
+document.getElementById('profile-name-save').addEventListener('click', () => {
+  const input = document.getElementById('profile-name-input');
+  const newName = input.value.trim();
+  const status = document.getElementById('profile-save-status');
+  if (!newName) {
+    status.textContent = "Ism bo'sh bo'lishi mumkin emas";
+    status.style.color = 'var(--danger)';
+    return;
+  }
+  localStorage.setItem('shadowing_username', newName);
+  status.textContent = "✅ Saqlandi! (Eslatma: eski faoliyat oldingi ism ostida qoladi)";
+  status.style.color = 'var(--accent-dark)';
+  loadProfile();
+});
 
 // ---------- Boshlang'ich yuklash ----------
 loadLessons();
