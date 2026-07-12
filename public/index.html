@@ -117,6 +117,128 @@
 
       <button type="submit">Darsni yuklash</button>
     </form>
+    <p id="upload-status"></p><!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shadowing for English</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ISM KIRITISH OYNASI -->
+<div id="name-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Xush kelibsiz! 👋</h2>
+    <p class="muted">Darslarda qatnashish uchun ismingizni kiriting</p>
+    <input type="text" id="name-input" placeholder="Ismingiz" maxlength="40">
+    <button id="name-submit">Boshlash</button>
+  </div>
+</div>
+
+<!-- ADMIN PAROL OYNASI -->
+<div id="admin-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Admin kirish 🔒</h2>
+    <p class="muted">Faqat dars qo'shish uchun parol kerak</p>
+    <input type="password" id="admin-password-input" placeholder="Parol">
+    <button id="admin-password-submit">Kirish</button>
+    <p id="admin-error" class="muted" style="color:var(--danger);display:none;">Parol noto'g'ri</p>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-wave" viewBox="0 0 28 24" width="28" height="24">
+      <rect class="bar" x="0" y="8" width="3" height="8" rx="1.5"/>
+      <rect class="bar" x="5" y="4" width="3" height="16" rx="1.5"/>
+      <rect class="bar" x="10" y="0" width="3" height="24" rx="1.5"/>
+      <rect class="bar" x="15" y="6" width="3" height="12" rx="1.5"/>
+      <rect class="bar" x="20" y="2" width="3" height="20" rx="1.5"/>
+      <rect class="bar" x="25" y="9" width="3" height="6" rx="1.5"/>
+    </svg>
+    <h1>Shadowing for English</h1>
+  </div>
+  <nav>
+    <button class="tab-btn active" data-tab="lessons">Darslar</button>
+    <button class="tab-btn" data-tab="leaderboard">Reyting</button>
+    <button class="tab-btn" data-tab="profile">Profil</button>
+    <button class="tab-btn" data-tab="upload" id="upload-tab-btn" style="display:none;">Yangi dars qo'shish</button>
+    <button class="tab-btn admin-btn" id="admin-login-btn" title="Admin kirish">⚙️</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- DARSLAR RO'YXATI -->
+  <section id="tab-lessons" class="tab-content active">
+
+    <div class="hero">
+      <div class="hero-text">
+        <h1 class="hero-title">Eshit. Takrorla.<br><span class="hero-accent">Ravon gapir.</span></h1>
+        <p class="hero-subtitle">Shadowing texnikasi — original nutqni tinglab, aynan shu vaqtda takrorlab gapirish orqali talaffuz va ravonlikni oshirasiz.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><span class="hero-stat-num" id="stat-lessons">–</span><span class="hero-stat-label">dars</span></div>
+          <div class="hero-stat"><span class="hero-stat-num" id="stat-participants">–</span><span class="hero-stat-label">qatnashuvchi</span></div>
+        </div>
+      </div>
+      <svg class="hero-wave" viewBox="0 0 400 120" preserveAspectRatio="none">
+        <g class="hero-bars"></g>
+      </svg>
+    </div>
+
+    <h2>Darslar ro'yxati</h2>
+    <div id="lessons-list" class="lessons-grid">
+      <p class="muted">Yuklanmoqda...</p>
+    </div>
+  </section>
+
+  <!-- REYTING -->
+  <section id="tab-leaderboard" class="tab-content">
+    <button class="section-back-btn" data-back>← Darslarga qaytish</button>
+    <h2>🏆 Reyting</h2>
+    <p class="muted" style="margin-top:-14px;">Ko'p mashq qilgan va faol qatnashuvchilar</p>
+    <div id="leaderboard-list" class="leaderboard-box">
+      <p class="muted">Yuklanmoqda...</p>
+    </div>
+  </section>
+
+  <!-- PROFIL -->
+  <section id="tab-profile" class="tab-content">
+    <button class="section-back-btn" data-back>← Darslarga qaytish</button>
+    <h2>👤 Profil</h2>
+    <div class="profile-box">
+      <label>Ismingiz</label>
+      <div class="profile-name-row">
+        <input type="text" id="profile-name-input" maxlength="40">
+        <button id="profile-name-save">Saqlash</button>
+      </div>
+      <p id="profile-save-status" class="muted"></p>
+
+      <div class="profile-stats" id="profile-stats">
+        <p class="muted">Yuklanmoqda...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- YANGI DARS QO'SHISH -->
+  <section id="tab-upload" class="tab-content">
+    <button class="section-back-btn" data-back>← Darslarga qaytish</button>
+    <h2>Yangi dars qo'shish</h2>
+    <form id="upload-form">
+      <label>Dars nomi</label>
+      <input type="text" id="lesson-title" placeholder="Masalan: IELTS Listening - Part 2" required>
+
+      <label>Audio yoki Video fayl</label>
+      <input type="file" id="media-file" accept="audio/*,video/*" required>
+
+      <label>Transcript (har bir qatorda: <code>00:00-00:05 | Matn | Tarjima</code>)</label>
+      <textarea id="transcript-input" rows="10" placeholder="00:00-00:04 | After several years of teaching | Bir necha yillik o'qituvchilikdan so'ng
+00:04-00:09 | I came to the conclusion that... | Men shunday xulosaga keldimki..."></textarea>
+
+      <button type="submit">Darsni yuklash</button>
+    </form>
     <p id="upload-status"></p>
   </section>
 
@@ -126,6 +248,18 @@
     <h2 id="player-title"></h2>
     <div id="media-container"></div>
     <div id="progress-bar-box" class="progress-bar-box">
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
+      <span id="progress-bar-label" class="muted">0%</span>
+    </div>
+    <div id="participants-box" class="participants-box"></div>
+    <div id="transcript-list" class="transcript-list"></div>
+  </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
       <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
       <span id="progress-bar-label" class="muted">0%</span>
     </div>
