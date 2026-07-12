@@ -42,6 +42,11 @@ body {
   letter-spacing: -0.02em;
 }
 
+.tab-btn.admin-btn {
+  padding: 8px 12px;
+  font-size: 16px;
+}
+
 nav { display: flex; gap: 8px; }
 
 .tab-btn {
@@ -138,7 +143,7 @@ form label {
   margin-top: 14px;
 }
 
-input[type="text"], input[type="file"], textarea {
+input[type="text"], input[type="file"], input[type="password"], textarea {
   background: var(--bg-panel-2);
   border: 1px solid var(--line);
   border-radius: 8px;
