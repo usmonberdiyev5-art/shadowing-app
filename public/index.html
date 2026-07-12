@@ -30,9 +30,21 @@
 </div>
 
 <header class="topbar">
-  <h1>🎧 Shadowing for English</h1>
+  <div class="brand">
+    <svg class="brand-wave" viewBox="0 0 28 24" width="28" height="24">
+      <rect class="bar" x="0" y="8" width="3" height="8" rx="1.5"/>
+      <rect class="bar" x="5" y="4" width="3" height="16" rx="1.5"/>
+      <rect class="bar" x="10" y="0" width="3" height="24" rx="1.5"/>
+      <rect class="bar" x="15" y="6" width="3" height="12" rx="1.5"/>
+      <rect class="bar" x="20" y="2" width="3" height="20" rx="1.5"/>
+      <rect class="bar" x="25" y="9" width="3" height="6" rx="1.5"/>
+    </svg>
+    <h1>Shadowing for English</h1>
+  </div>
   <nav>
     <button class="tab-btn active" data-tab="lessons">Darslar</button>
+    <button class="tab-btn" data-tab="leaderboard">Reyting</button>
+    <button class="tab-btn" data-tab="profile">Profil</button>
     <button class="tab-btn" data-tab="upload" id="upload-tab-btn" style="display:none;">Yangi dars qo'shish</button>
     <button class="tab-btn admin-btn" id="admin-login-btn" title="Admin kirish">⚙️</button>
   </nav>
@@ -42,9 +54,50 @@
 
   <!-- DARSLAR RO'YXATI -->
   <section id="tab-lessons" class="tab-content active">
+
+    <div class="hero">
+      <div class="hero-text">
+        <h1 class="hero-title">Eshit. Takrorla.<br><span class="hero-accent">Ravon gapir.</span></h1>
+        <p class="hero-subtitle">Shadowing texnikasi — original nutqni tinglab, aynan shu vaqtda takrorlab gapirish orqali talaffuz va ravonlikni oshirasiz.</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><span class="hero-stat-num" id="stat-lessons">–</span><span class="hero-stat-label">dars</span></div>
+          <div class="hero-stat"><span class="hero-stat-num" id="stat-participants">–</span><span class="hero-stat-label">qatnashuvchi</span></div>
+        </div>
+      </div>
+      <svg class="hero-wave" viewBox="0 0 400 120" preserveAspectRatio="none">
+        <g class="hero-bars"></g>
+      </svg>
+    </div>
+
     <h2>Darslar ro'yxati</h2>
     <div id="lessons-list" class="lessons-grid">
       <p class="muted">Yuklanmoqda...</p>
+    </div>
+  </section>
+
+  <!-- REYTING -->
+  <section id="tab-leaderboard" class="tab-content">
+    <h2>🏆 Reyting</h2>
+    <p class="muted" style="margin-top:-14px;">Ko'p mashq qilgan va faol qatnashuvchilar</p>
+    <div id="leaderboard-list" class="leaderboard-box">
+      <p class="muted">Yuklanmoqda...</p>
+    </div>
+  </section>
+
+  <!-- PROFIL -->
+  <section id="tab-profile" class="tab-content">
+    <h2>👤 Profil</h2>
+    <div class="profile-box">
+      <label>Ismingiz</label>
+      <div class="profile-name-row">
+        <input type="text" id="profile-name-input" maxlength="40">
+        <button id="profile-name-save">Saqlash</button>
+      </div>
+      <p id="profile-save-status" class="muted"></p>
+
+      <div class="profile-stats" id="profile-stats">
+        <p class="muted">Yuklanmoqda...</p>
+      </div>
     </div>
   </section>
 
@@ -72,6 +125,10 @@
     <button id="back-btn">← Darslar ro'yxatiga qaytish</button>
     <h2 id="player-title"></h2>
     <div id="media-container"></div>
+    <div id="progress-bar-box" class="progress-bar-box">
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
+      <span id="progress-bar-label" class="muted">0%</span>
+    </div>
     <div id="participants-box" class="participants-box"></div>
     <div id="transcript-list" class="transcript-list"></div>
   </section>
