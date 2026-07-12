@@ -6,6 +6,17 @@ const path = require('path');
 const fs = require('fs');
 const { loadData, saveData } = require('./db');
 
+// Admin paroli — Railway'da "Variables" bo'limida ADMIN_PASSWORD environment variable sifatida sozlanadi
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'usmon123';
+
+function requireAdmin(req, res, next) {
+  const provided = req.headers['x-admin-password'];
+  if (provided !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Admin paroli noto\'g\'ri' });
+  }
+  next();
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -32,8 +43,13 @@ const upload = multer({ storage, limits: { fileSize: 300 * 1024 * 1024 } }); // 
 
 // ============ API ROUTES ============
 
+// 0) Admin parolini tekshirish (frontend uchun)
+app.post('/api/admin/check', requireAdmin, (req, res) => {
+  res.json({ success: true });
+});
+
 // 1) Yangi dars (lesson) yaratish: media fayl + transcript JSON
-app.post('/api/lessons', upload.single('media'), (req, res) => {
+app.post('/api/lessons', requireAdmin, upload.single('media'), (req, res) => {
   try {
     const { title, transcript } = req.body;
     if (!req.file || !title || !transcript) {
@@ -95,7 +111,7 @@ app.get('/api/lessons/:id', (req, res) => {
 });
 
 // 4) Darsni o'chirish
-app.delete('/api/lessons/:id', (req, res) => {
+app.delete('/api/lessons/:id', requireAdmin, (req, res) => {
   const data = loadData();
   const lessonId = parseInt(req.params.id, 10);
   const lesson = data.lessons.find(l => l.id === lessonId);
