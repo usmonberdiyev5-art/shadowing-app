@@ -1,18 +1,26 @@
-/* Shadowing for English — "recording studio" mavzusi */
+/* Shadowing for English — professional light theme, dark header, "waveform" imzo elementi */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
-  --bg: #14161c;
-  --bg-panel: #1c1f28;
-  --bg-panel-2: #232732;
-  --line: #2e323d;
-  --text: #e8e9ed;
-  --text-muted: #8b8f9c;
-  --accent: #4ECDC4;      /* teal - faol / progress */
-  --accent-warm: #F2A65A; /* amber - rec / diqqat */
-  --danger: #e8615c;
-  --radius: 10px;
+  --header-bg: #12141a;
+  --header-text: #f5f6f8;
+
+  --bg: #f4f5f7;
+  --bg-panel: #ffffff;
+  --bg-panel-2: #f0f1f4;
+  --line: #e3e5ea;
+  --text: #14161c;
+  --text-muted: #6b7280;
+
+  --accent: #14b8a6;      /* teal */
+  --accent-dark: #0f9c8c;
+  --accent-warm: #f59e0b; /* amber */
+  --danger: #ef4444;
+
+  --radius: 12px;
+  --shadow-card: 0 1px 3px rgba(20,22,28,0.06), 0 1px 2px rgba(20,22,28,0.04);
+  --shadow-hover: 0 12px 28px rgba(20,22,28,0.10);
 }
 
 * { box-sizing: border-box; }
@@ -25,45 +33,66 @@ body {
   min-height: 100vh;
 }
 
+/* ---------- Header ---------- */
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 32px;
-  border-bottom: 1px solid var(--line);
-  background: var(--bg-panel);
+  padding: 18px 32px;
+  background: var(--header-bg);
+  color: var(--header-text);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand { display: flex; align-items: center; gap: 12px; }
+
+.brand-wave .bar {
+  fill: var(--accent);
+  animation: wave-bounce 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+.brand-wave .bar:nth-child(1) { animation-delay: -1.2s; }
+.brand-wave .bar:nth-child(2) { animation-delay: -0.9s; }
+.brand-wave .bar:nth-child(3) { animation-delay: -0.6s; }
+.brand-wave .bar:nth-child(4) { animation-delay: -0.3s; }
+.brand-wave .bar:nth-child(5) { animation-delay: -1.0s; }
+.brand-wave .bar:nth-child(6) { animation-delay: -0.5s; }
+
+@keyframes wave-bounce {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1); }
 }
 
 .topbar h1 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.02em;
+  color: var(--header-text);
 }
 
-.tab-btn.admin-btn {
-  padding: 8px 12px;
-  font-size: 16px;
-}
-
-nav { display: flex; gap: 8px; }
+nav { display: flex; gap: 6px; align-items: center; }
 
 .tab-btn {
   background: transparent;
-  border: 1px solid var(--line);
-  color: var(--text-muted);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.75);
   padding: 8px 16px;
-  border-radius: var(--radius);
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   transition: all 0.15s ease;
 }
-.tab-btn:hover { color: var(--text); border-color: var(--accent); }
-.tab-btn.active { background: var(--accent); color: #0c1210; border-color: var(--accent); }
+.tab-btn:hover { color: #fff; border-color: var(--accent); }
+.tab-btn.active { background: var(--accent); color: #06201c; border-color: var(--accent); font-weight: 600; }
+.tab-btn.admin-btn { padding: 8px 12px; font-size: 15px; }
 
-main { max-width: 900px; margin: 0 auto; padding: 32px 24px 80px; }
+/* ---------- Layout ---------- */
+main { max-width: 960px; margin: 0 auto; padding: 0 24px 80px; }
 
 .tab-content { display: none; }
 .tab-content.active { display: block; }
@@ -72,11 +101,54 @@ h2 {
   font-family: 'Space Grotesk', sans-serif;
   font-size: 22px;
   margin-bottom: 20px;
+  letter-spacing: -0.01em;
 }
 
 .muted { color: var(--text-muted); }
 
-/* Darslar ro'yxati */
+/* ---------- Hero (Darslar sahifasi tepasi) ---------- */
+.hero {
+  position: relative;
+  background: var(--header-bg);
+  color: var(--header-text);
+  border-radius: 0 0 24px 24px;
+  margin: 0 -24px 40px;
+  padding: 56px 24px 44px;
+  overflow: hidden;
+}
+.hero-text { max-width: 560px; position: relative; z-index: 2; }
+.hero-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 38px;
+  line-height: 1.15;
+  font-weight: 700;
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
+}
+.hero-accent { color: var(--accent); }
+.hero-subtitle {
+  font-size: 15px;
+  color: rgba(245,246,248,0.72);
+  line-height: 1.6;
+  margin: 0 0 28px;
+  max-width: 460px;
+}
+.hero-stats { display: flex; gap: 32px; }
+.hero-stat { display: flex; flex-direction: column; }
+.hero-stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; color: var(--accent); }
+.hero-stat-label { font-size: 12px; color: rgba(245,246,248,0.55); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.hero-wave {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  height: 100%;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* ---------- Darslar ro'yxati ---------- */
 .lessons-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -87,12 +159,27 @@ h2 {
   background: var(--bg-panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 18px;
+  padding: 16px 18px 18px;
   cursor: pointer;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   position: relative;
+  box-shadow: var(--shadow-card);
+  animation: card-in 0.4s ease backwards;
 }
-.lesson-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.lesson-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.lesson-card .waveform { display: block; width: 100%; height: 36px; margin-bottom: 12px; opacity: 0.9; }
+.lesson-card .waveform rect { fill: var(--accent); }
+.lesson-card:hover .waveform rect { fill: var(--accent-warm); transition: fill 0.2s ease; }
 
 .lesson-card .badge {
   display: inline-block;
@@ -103,15 +190,11 @@ h2 {
   padding: 3px 8px;
   border-radius: 20px;
   background: var(--bg-panel-2);
-  color: var(--accent);
+  color: var(--accent-dark);
   margin-bottom: 10px;
 }
 
-.lesson-card h3 {
-  font-size: 16px;
-  margin: 0 0 6px;
-  font-weight: 600;
-}
+.lesson-card h3 { font-size: 16px; margin: 0 0 6px; font-weight: 600; }
 
 .lesson-card .delete-btn {
   position: absolute;
@@ -125,7 +208,7 @@ h2 {
 }
 .lesson-card .delete-btn:hover { color: var(--danger); }
 
-/* Forma */
+/* ---------- Forma ---------- */
 form {
   display: flex;
   flex-direction: column;
@@ -134,14 +217,10 @@ form {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 24px;
+  box-shadow: var(--shadow-card);
 }
 
-form label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-top: 14px;
-}
+form label { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: 14px; }
 
 input[type="text"], input[type="file"], input[type="password"], textarea {
   background: var(--bg-panel-2);
@@ -155,15 +234,12 @@ input[type="text"], input[type="file"], input[type="password"], textarea {
 
 textarea { font-family: 'JetBrains Mono', monospace; font-size: 13px; resize: vertical; }
 
-input:focus, textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-}
+input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 button[type="submit"] {
   margin-top: 20px;
   background: var(--accent);
-  color: #0c1210;
+  color: #06201c;
   border: none;
   padding: 12px;
   border-radius: 8px;
@@ -171,16 +247,16 @@ button[type="submit"] {
   cursor: pointer;
   font-size: 14px;
 }
-button[type="submit"]:hover { filter: brightness(1.08); }
+button[type="submit"]:hover { background: var(--accent-dark); }
 
 #upload-status { margin-top: 12px; font-size: 14px; }
 
-/* Ism kiritish oynasi */
+/* ---------- Modal oynalar ---------- */
 .modal-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(10, 11, 14, 0.85);
+  background: rgba(10, 11, 14, 0.6);
   z-index: 100;
   align-items: center;
   justify-content: center;
@@ -195,6 +271,7 @@ button[type="submit"]:hover { filter: brightness(1.08); }
   width: 90%;
   max-width: 360px;
   text-align: center;
+  box-shadow: var(--shadow-hover);
 }
 .modal-box h2 { font-family: 'Space Grotesk', sans-serif; margin: 0 0 6px; font-size: 20px; }
 .modal-box p { margin: 0 0 18px; font-size: 14px; }
@@ -213,7 +290,7 @@ button[type="submit"]:hover { filter: brightness(1.08); }
 .modal-box button {
   width: 100%;
   background: var(--accent);
-  color: #0c1210;
+  color: #06201c;
   border: none;
   padding: 12px;
   border-radius: 8px;
@@ -221,8 +298,9 @@ button[type="submit"]:hover { filter: brightness(1.08); }
   cursor: pointer;
   font-size: 14px;
 }
+.modal-box button:hover { background: var(--accent-dark); }
 
-/* Qatnashuvchilar ro'yxati */
+/* ---------- Qatnashuvchilar ---------- */
 .participants-box {
   display: flex;
   align-items: center;
@@ -240,32 +318,45 @@ button[type="submit"]:hover { filter: brightness(1.08); }
   font-size: 12px;
   color: var(--text);
 }
-.participant-chip.you {
-  border-color: var(--accent);
-  color: var(--accent);
-}
+.participant-chip.you { border-color: var(--accent); color: var(--accent-dark); font-weight: 600; }
 
-/* Pleer */
+/* ---------- Progress bar (pleer ichida) ---------- */
+.progress-bar-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.progress-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+  transition: width 0.3s ease;
+}
+#progress-bar-label { font-size: 12px; font-weight: 600; min-width: 36px; text-align: right; }
+
+/* ---------- Pleer ---------- */
 #back-btn {
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--accent-dark);
   cursor: pointer;
   font-size: 14px;
-  padding: 0 0 16px;
+  padding: 20px 0 16px;
+  font-weight: 600;
 }
 
-#media-container video, #media-container audio {
-  width: 100%;
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-}
+#media-container video, #media-container audio { width: 100%; border-radius: var(--radius); margin-bottom: 20px; }
 
-.transcript-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.transcript-list { display: flex; flex-direction: column; gap: 6px; }
 
 .transcript-line {
   display: flex;
@@ -274,47 +365,39 @@ button[type="submit"]:hover { filter: brightness(1.08); }
   padding: 12px 16px;
   border-radius: 8px;
   background: var(--bg-panel);
-  border: 1px solid transparent;
+  border: 1px solid var(--line);
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: var(--shadow-card);
 }
-.transcript-line:hover { border-color: var(--line); }
+.transcript-line:hover { border-color: var(--accent); }
 
 .transcript-line .timestamp {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   color: var(--text-muted);
   flex-shrink: 0;
-  width: 44px;
+  width: 50px;
 }
 
 .transcript-line .content { flex: 1; }
 .transcript-line .en { font-size: 15px; }
 .transcript-line .uz { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
 
-/* Faol qator — REC-nuqta uslubi bilan diqqat tortadi */
-.transcript-line.active {
-  background: rgba(78, 205, 196, 0.1);
-  border-color: var(--accent);
-}
-.transcript-line.active .timestamp {
-  color: var(--accent-warm);
-}
+.transcript-line.active { background: rgba(20, 184, 166, 0.08); border-color: var(--accent); }
+.transcript-line.active .timestamp { color: var(--accent-warm); font-weight: 700; }
 .transcript-line.active .timestamp::before {
   content: '';
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--accent-warm);
   margin-right: 6px;
   animation: pulse 1.2s infinite;
 }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
+.transcript-line.practiced .timestamp::after { content: ' ✓'; color: var(--accent-dark); }
 
 .transcript-line .repeat-btn {
   background: var(--bg-panel-2);
@@ -326,4 +409,80 @@ button[type="submit"]:hover { filter: brightness(1.08); }
   cursor: pointer;
   flex-shrink: 0;
 }
-.transcript-line .repeat-btn:hover { color: var(--accent); border-color: var(--accent); }
+.transcript-line .repeat-btn:hover { color: var(--accent-dark); border-color: var(--accent); }
+
+/* ---------- Reyting ---------- */
+.leaderboard-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.leaderboard-row:last-child { border-bottom: none; }
+.leaderboard-row.me { background: rgba(20,184,166,0.06); }
+.lb-rank {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  width: 28px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.lb-rank.gold { color: #d4a017; }
+.lb-rank.silver { color: #9aa0a8; }
+.lb-rank.bronze { color: #b5651d; }
+.lb-name { flex: 1; font-weight: 600; }
+.lb-stats { display: flex; gap: 18px; font-size: 13px; color: var(--text-muted); }
+.lb-stats b { color: var(--text); }
+
+/* ---------- Profil ---------- */
+.profile-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow-card);
+  max-width: 480px;
+}
+.profile-box label { font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px; }
+.profile-name-row { display: flex; gap: 10px; }
+.profile-name-row input {
+  flex: 1;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+.profile-name-row button {
+  background: var(--accent);
+  color: #06201c;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.profile-name-row button:hover { background: var(--accent-dark); }
+.profile-stats { margin-top: 24px; display: flex; gap: 24px; flex-wrap: wrap; }
+.profile-stat { display: flex; flex-direction: column; }
+.profile-stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: var(--accent-dark); }
+.profile-stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ---------- Mobil moslashuv ---------- */
+@media (max-width: 640px) {
+  .topbar { flex-direction: column; gap: 12px; padding: 16px; }
+  .hero { margin: 0 -16px 32px; padding: 36px 16px 28px; }
+  .hero-title { font-size: 28px; }
+  .hero-wave { display: none; }
+  main { padding: 0 16px 60px; }
+}
