@@ -83,6 +83,7 @@ function switchTab(tabName) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-' + tabName).classList.add('active');
+  if (tabName !== 'player') stopActiveMedia();
   if (tabName === 'lessons') loadLessons();
   if (tabName === 'leaderboard') loadLeaderboard();
   if (tabName === 'profile') loadProfile();
