@@ -173,12 +173,15 @@ app.get('/api/lessons/:id/participants', (req, res) => {
   res.json(list);
 });
 
-// 7) Progress belgilash (bir qatorni mashq qilganda)
+// 7) Progress belgilash (bir qatorni mashq qilganda) — endi ism bilan
 app.post('/api/progress', (req, res) => {
   const data = loadData();
-  const { lesson_id, line_id } = req.body;
+  const { lesson_id, line_id, name } = req.body;
+  const cleanName = (name || 'Mehmon').trim().slice(0, 40);
 
-  const existing = data.progress.find(p => p.lesson_id === lesson_id && p.line_id === line_id);
+  const existing = data.progress.find(
+    p => p.lesson_id === lesson_id && p.line_id === line_id && p.name.toLowerCase() === cleanName.toLowerCase()
+  );
   if (existing) {
     existing.practiced_count += 1;
     existing.last_practiced_at = new Date().toISOString();
@@ -187,6 +190,7 @@ app.post('/api/progress', (req, res) => {
       id: data.nextProgressId++,
       lesson_id,
       line_id,
+      name: cleanName,
       practiced_count: 1,
       last_practiced_at: new Date().toISOString()
     });
@@ -194,6 +198,62 @@ app.post('/api/progress', (req, res) => {
 
   saveData(data);
   res.json({ success: true });
+});
+
+// 8) Bitta foydalanuvchining bitta darsdagi progressi (qaysi qatorlarni mashq qilgan)
+app.get('/api/lessons/:id/my-progress', (req, res) => {
+  const data = loadData();
+  const lessonId = parseInt(req.params.id, 10);
+  const name = (req.query.name || '').trim().toLowerCase();
+
+  const practicedLineIds = data.progress
+    .filter(p => p.lesson_id === lessonId && p.name.toLowerCase() === name)
+    .map(p => p.line_id);
+
+  const totalLines = data.transcript_lines.filter(l => l.lesson_id === lessonId).length;
+
+  res.json({ practicedLineIds, totalLines });
+});
+
+// 9) Reyting jadvali — barcha foydalanuvchilar bo'yicha faollik
+app.get('/api/leaderboard', (req, res) => {
+  const data = loadData();
+
+  const statsByName = {};
+
+  // Har bir mashq qilingan qator uchun umumiy takrorlashlar soni
+  for (const p of data.progress) {
+    const key = p.name.toLowerCase();
+    if (!statsByName[key]) {
+      statsByName[key] = { name: p.name, totalRepeats: 0, lessonsSet: new Set(), lastActive: p.last_practiced_at };
+    }
+    statsByName[key].totalRepeats += p.practiced_count;
+    statsByName[key].lessonsSet.add(p.lesson_id);
+    if (new Date(p.last_practiced_at) > new Date(statsByName[key].lastActive)) {
+      statsByName[key].lastActive = p.last_practiced_at;
+    }
+  }
+
+  // Qatnashgan darslar sonini participants orqali ham hisobga olish (mashq qilmagan, faqat ochgan bo'lsa ham)
+  for (const p of data.participants) {
+    const key = p.name.toLowerCase();
+    if (!statsByName[key]) {
+      statsByName[key] = { name: p.name, totalRepeats: 0, lessonsSet: new Set(), lastActive: p.last_seen_at };
+    }
+    statsByName[key].lessonsSet.add(p.lesson_id);
+  }
+
+  const leaderboard = Object.values(statsByName).map(s => ({
+    name: s.name,
+    totalRepeats: s.totalRepeats,
+    lessonsJoined: s.lessonsSet.size,
+    score: s.totalRepeats * 2 + s.lessonsSet.size * 5, // faollik bali: takrorlash + qatnashilgan darslar
+    lastActive: s.lastActive
+  }));
+
+  leaderboard.sort((a, b) => b.score - a.score);
+
+  res.json(leaderboard);
 });
 
 app.listen(PORT, () => {
