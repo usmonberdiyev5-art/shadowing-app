@@ -6,21 +6,21 @@
   --header-bg: #12141a;
   --header-text: #f5f6f8;
 
-  --bg: #f4f5f7;
-  --bg-panel: #ffffff;
-  --bg-panel-2: #f0f1f4;
-  --line: #e3e5ea;
-  --text: #14161c;
-  --text-muted: #6b7280;
+  --bg: #191b22;
+  --bg-panel: #1e212a;
+  --bg-panel-2: #262a35;
+  --line: #333844;
+  --text: #e8e9ed;
+  --text-muted: #8b8f9c;
 
-  --accent: #14b8a6;      /* teal */
-  --accent-dark: #0f9c8c;
-  --accent-warm: #f59e0b; /* amber */
+  --accent: #2dd4bf;      /* teal */
+  --accent-dark: #5eead4;
+  --accent-warm: #f5a742; /* amber */
   --danger: #ef4444;
 
   --radius: 12px;
-  --shadow-card: 0 1px 3px rgba(20,22,28,0.06), 0 1px 2px rgba(20,22,28,0.04);
-  --shadow-hover: 0 12px 28px rgba(20,22,28,0.10);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-hover: 0 12px 28px rgba(0,0,0,0.5);
 }
 
 * { box-sizing: border-box; }
@@ -105,6 +105,18 @@ h2 {
 }
 
 .muted { color: var(--text-muted); }
+
+.section-back-btn {
+  background: none;
+  border: none;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0 0 16px;
+  display: block;
+}
+.section-back-btn:hover { color: var(--accent); }
 
 /* ---------- Hero (Darslar sahifasi tepasi) ---------- */
 .hero {
@@ -399,17 +411,24 @@ button[type="submit"]:hover { background: var(--accent-dark); }
 
 .transcript-line.practiced .timestamp::after { content: ' ✓'; color: var(--accent-dark); }
 
+.transcript-line .repeat-group {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .transcript-line .repeat-btn {
   background: var(--bg-panel-2);
   border: 1px solid var(--line);
   color: var(--text-muted);
   border-radius: 6px;
-  padding: 4px 10px;
+  padding: 4px 9px;
   font-size: 12px;
   cursor: pointer;
-  flex-shrink: 0;
+  white-space: nowrap;
 }
 .transcript-line .repeat-btn:hover { color: var(--accent-dark); border-color: var(--accent); }
+.transcript-line .repeat-btn.slow { font-size: 13px; padding: 4px 8px; }
 
 /* ---------- Reyting ---------- */
 .leaderboard-box {
@@ -485,4 +504,6 @@ button[type="submit"]:hover { background: var(--accent-dark); }
   .hero-title { font-size: 28px; }
   .hero-wave { display: none; }
   main { padding: 0 16px 60px; }
+  .transcript-line { flex-wrap: wrap; }
+  .transcript-line .repeat-group { width: 100%; justify-content: flex-end; margin-top: 4px; }
 }
