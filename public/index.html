@@ -18,11 +18,23 @@
   </div>
 </div>
 
+<!-- ADMIN PAROL OYNASI -->
+<div id="admin-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Admin kirish 🔒</h2>
+    <p class="muted">Faqat dars qo'shish uchun parol kerak</p>
+    <input type="password" id="admin-password-input" placeholder="Parol">
+    <button id="admin-password-submit">Kirish</button>
+    <p id="admin-error" class="muted" style="color:var(--danger);display:none;">Parol noto'g'ri</p>
+  </div>
+</div>
+
 <header class="topbar">
   <h1>🎧 Shadowing for English</h1>
   <nav>
     <button class="tab-btn active" data-tab="lessons">Darslar</button>
-    <button class="tab-btn" data-tab="upload">Yangi dars qo'shish</button>
+    <button class="tab-btn" data-tab="upload" id="upload-tab-btn" style="display:none;">Yangi dars qo'shish</button>
+    <button class="tab-btn admin-btn" id="admin-login-btn" title="Admin kirish">⚙️</button>
   </nav>
 </header>
 
