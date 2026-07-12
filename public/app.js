@@ -93,6 +93,10 @@ document.getElementById('back-btn').addEventListener('click', () => {
   switchTab('lessons');
 });
 
+document.querySelectorAll('[data-back]').forEach(btn => {
+  btn.addEventListener('click', () => switchTab('lessons'));
+});
+
 // ---------- Vaqt yordamchi funksiyalari ----------
 function timeToSeconds(str) {
   const parts = str.trim().split(':').map(Number);
@@ -279,6 +283,7 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
 let currentLesson = null;
 let mediaEl = null;
 let practicedLineIds = new Set();
+let slowModeEndTime = null;
 
 async function openPlayer(lessonId) {
   const res = await fetch(`${API_BASE}/lessons/${lessonId}`);
@@ -362,13 +367,25 @@ function renderTranscript() {
         <div class="en">${escapeHtml(line.text)}</div>
         ${line.translation ? `<div class="uz">${escapeHtml(line.translation)}</div>` : ''}
       </div>
-      <button class="repeat-btn">🔁 Takrorlash</button>
+      <div class="repeat-group">
+        <button class="repeat-btn normal" title="Oddiy tezlikda takrorlash">🔁</button>
+        <button class="repeat-btn slow" title="Sekin (0.5x) takrorlash">🐢</button>
+      </div>
     `;
     row.querySelector('.content').addEventListener('click', () => {
+      mediaEl.playbackRate = 1;
       mediaEl.currentTime = line.start_time;
       mediaEl.play();
     });
-    row.querySelector('.repeat-btn').addEventListener('click', () => {
+    row.querySelector('.repeat-btn.normal').addEventListener('click', () => {
+      mediaEl.playbackRate = 1;
+      mediaEl.currentTime = line.start_time;
+      mediaEl.play();
+      markLinePracticed(row, line.id);
+    });
+    row.querySelector('.repeat-btn.slow').addEventListener('click', () => {
+      mediaEl.playbackRate = 0.5;
+      slowModeEndTime = line.end_time;
       mediaEl.currentTime = line.start_time;
       mediaEl.play();
       markLinePracticed(row, line.id);
@@ -393,6 +410,13 @@ function markLinePracticed(row, lineId) {
 
 function onTimeUpdate() {
   const t = mediaEl.currentTime;
+
+  // Sekin (0.5x) rejim faqat belgilangan qator tugaguncha ishlaydi, keyin oddiy tezlikka qaytadi
+  if (slowModeEndTime !== null && t >= slowModeEndTime) {
+    mediaEl.playbackRate = 1;
+    slowModeEndTime = null;
+  }
+
   document.querySelectorAll('.transcript-line').forEach(row => {
     const start = parseFloat(row.dataset.start);
     const end = parseFloat(row.dataset.end);
