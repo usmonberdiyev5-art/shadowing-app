@@ -1,268 +1,514 @@
-// server.js — Shadowing for English backend
-const express = require('express');
-const cors = require('cors');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const { loadData, saveData } = require('./db');
+/* Shadowing for English — professional light theme, dark header, "waveform" imzo elementi */
 
-// Admin paroli — Railway'da "Variables" bo'limida ADMIN_PASSWORD environment variable sifatida sozlanadi
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'usmon123';
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
-function requireAdmin(req, res, next) {
-  const provided = req.headers['x-admin-password'];
-  if (provided !== ADMIN_PASSWORD) {
-    return res.status(401).json({ error: 'Admin paroli noto\'g\'ri' });
-  }
-  next();
+:root {
+  --header-bg: #12141a;
+  --header-text: #f5f6f8;
+
+  --bg: #191b22;
+  --bg-panel: #1e212a;
+  --bg-panel-2: #262a35;
+  --line: #333844;
+  --text: #e8e9ed;
+  --text-muted: #8b8f9c;
+
+  --accent: #2dd4bf;      /* teal */
+  --accent-dark: #5eead4;
+  --accent-warm: #f5a742; /* amber */
+  --danger: #ef4444;
+
+  --radius: 12px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-hover: 0 12px 28px rgba(0,0,0,0.5);
 }
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+* { box-sizing: border-box; }
 
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
 
-// Yuklangan fayllarni ochiq qilish (audio/video pleer uchun)
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
-app.use('/uploads', express.static(uploadsDir));
+/* ---------- Header ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  background: var(--header-bg);
+  color: var(--header-text);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
 
-// Frontend fayllarini xizmat qilish (index.html, style.css, app.js)
-// Kesh muammolarining oldini olish uchun har doim eng yangi versiya yuboriladi
-app.use(express.static(path.join(__dirname, 'public'), {
-  etag: false,
-  lastModified: false,
-  setHeaders: (res) => {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  }
-}));
+.brand { display: flex; align-items: center; gap: 12px; }
 
-// --- Fayl yuklash sozlamalari (multer) ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  }
-});
-const upload = multer({ storage, limits: { fileSize: 300 * 1024 * 1024 } }); // 300MB gacha
+.brand-wave .bar {
+  fill: var(--accent);
+  animation: wave-bounce 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+.brand-wave .bar:nth-child(1) { animation-delay: -1.2s; }
+.brand-wave .bar:nth-child(2) { animation-delay: -0.9s; }
+.brand-wave .bar:nth-child(3) { animation-delay: -0.6s; }
+.brand-wave .bar:nth-child(4) { animation-delay: -0.3s; }
+.brand-wave .bar:nth-child(5) { animation-delay: -1.0s; }
+.brand-wave .bar:nth-child(6) { animation-delay: -0.5s; }
 
-// ============ API ROUTES ============
+@keyframes wave-bounce {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1); }
+}
 
-// 0) Admin parolini tekshirish (frontend uchun)
-app.post('/api/admin/check', requireAdmin, (req, res) => {
-  res.json({ success: true });
-});
+.topbar h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+  color: var(--header-text);
+}
 
-// 1) Yangi dars (lesson) yaratish: media fayl + transcript JSON
-app.post('/api/lessons', requireAdmin, upload.single('media'), (req, res) => {
-  try {
-    const { title, transcript } = req.body;
-    if (!req.file || !title || !transcript) {
-      return res.status(400).json({ error: 'title, media va transcript majburiy' });
-    }
+nav { display: flex; gap: 6px; align-items: center; }
 
-    const lines = JSON.parse(transcript); // [{start_time, end_time, text, translation}, ...]
-    const mediaType = req.file.mimetype.startsWith('video') ? 'video' : 'audio';
+.tab-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.75);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+.tab-btn:hover { color: #fff; border-color: var(--accent); }
+.tab-btn.active { background: var(--accent); color: #06201c; border-color: var(--accent); font-weight: 600; }
+.tab-btn.admin-btn { padding: 8px 12px; font-size: 15px; }
 
-    const data = loadData();
+/* ---------- Layout ---------- */
+main { max-width: 960px; margin: 0 auto; padding: 0 24px 80px; }
 
-    const lessonId = data.nextLessonId++;
-    data.lessons.push({
-      id: lessonId,
-      title,
-      media_filename: req.file.filename,
-      media_type: mediaType,
-      created_at: new Date().toISOString()
-    });
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
-    for (const line of lines) {
-      data.transcript_lines.push({
-        id: data.nextLineId++,
-        lesson_id: lessonId,
-        start_time: line.start_time,
-        end_time: line.end_time,
-        text: line.text,
-        translation: line.translation || null
-      });
-    }
+h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  margin-bottom: 20px;
+  letter-spacing: -0.01em;
+}
 
-    saveData(data);
-    res.json({ success: true, lessonId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server xatosi: ' + err.message });
-  }
-});
+.muted { color: var(--text-muted); }
 
-// 2) Barcha darslar ro'yxati
-app.get('/api/lessons', (req, res) => {
-  const data = loadData();
-  const sorted = [...data.lessons].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  res.json(sorted);
-});
+.section-back-btn {
+  background: none;
+  border: none;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0 0 16px;
+  display: block;
+}
+.section-back-btn:hover { color: var(--accent); }
 
-// 3) Bitta darsni transcript bilan olish
-app.get('/api/lessons/:id', (req, res) => {
-  const data = loadData();
-  const lessonId = parseInt(req.params.id, 10);
-  const lesson = data.lessons.find(l => l.id === lessonId);
-  if (!lesson) return res.status(404).json({ error: 'Dars topilmadi' });
+/* ---------- Hero (Darslar sahifasi tepasi) ---------- */
+.hero {
+  position: relative;
+  background: var(--header-bg);
+  color: var(--header-text);
+  border-radius: 0 0 24px 24px;
+  margin: 0 -24px 40px;
+  padding: 56px 24px 44px;
+  overflow: hidden;
+}
+.hero-text { max-width: 560px; position: relative; z-index: 2; }
+.hero-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 38px;
+  line-height: 1.15;
+  font-weight: 700;
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
+}
+.hero-accent { color: var(--accent); }
+.hero-subtitle {
+  font-size: 15px;
+  color: rgba(245,246,248,0.72);
+  line-height: 1.6;
+  margin: 0 0 28px;
+  max-width: 460px;
+}
+.hero-stats { display: flex; gap: 32px; }
+.hero-stat { display: flex; flex-direction: column; }
+.hero-stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; color: var(--accent); }
+.hero-stat-label { font-size: 12px; color: rgba(245,246,248,0.55); text-transform: uppercase; letter-spacing: 0.05em; }
 
-  const lines = data.transcript_lines
-    .filter(l => l.lesson_id === lessonId)
-    .sort((a, b) => a.start_time - b.start_time);
+.hero-wave {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 55%;
+  height: 100%;
+  opacity: 0.5;
+  z-index: 1;
+}
 
-  res.json({ ...lesson, lines });
-});
+/* ---------- Darslar ro'yxati ---------- */
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
 
-// 4) Darsni o'chirish
-app.delete('/api/lessons/:id', requireAdmin, (req, res) => {
-  const data = loadData();
-  const lessonId = parseInt(req.params.id, 10);
-  const lesson = data.lessons.find(l => l.id === lessonId);
-  if (!lesson) return res.status(404).json({ error: 'Dars topilmadi' });
+.lesson-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 18px 18px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  box-shadow: var(--shadow-card);
+  animation: card-in 0.4s ease backwards;
+}
+.lesson-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
 
-  const filePath = path.join(uploadsDir, lesson.media_filename);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  data.lessons = data.lessons.filter(l => l.id !== lessonId);
-  data.transcript_lines = data.transcript_lines.filter(l => l.lesson_id !== lessonId);
-  data.progress = data.progress.filter(p => p.lesson_id !== lessonId);
-  data.participants = data.participants.filter(p => p.lesson_id !== lessonId);
+.lesson-card .waveform { display: block; width: 100%; height: 36px; margin-bottom: 12px; opacity: 0.9; }
+.lesson-card .waveform rect { fill: var(--accent); }
+.lesson-card:hover .waveform rect { fill: var(--accent-warm); transition: fill 0.2s ease; }
 
-  saveData(data);
-  res.json({ success: true });
-});
+.lesson-card .badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: var(--bg-panel-2);
+  color: var(--accent-dark);
+  margin-bottom: 10px;
+}
 
-// 5) Darsga "qo'shilish" — ism bilan (login/parolsiz, oddiy belgilash)
-app.post('/api/lessons/:id/join', (req, res) => {
-  const data = loadData();
-  const lessonId = parseInt(req.params.id, 10);
-  const { name } = req.body;
+.lesson-card h3 { font-size: 16px; margin: 0 0 6px; font-weight: 600; }
 
-  if (!name || !name.trim()) {
-    return res.status(400).json({ error: 'Ism kiritilishi shart' });
-  }
+.lesson-card .delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+}
+.lesson-card .delete-btn:hover { color: var(--danger); }
 
-  const cleanName = name.trim().slice(0, 40); // ortiqcha uzun ismni cheklash
+/* ---------- Forma ---------- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+}
 
-  const existing = data.participants.find(
-    p => p.lesson_id === lessonId && p.name.toLowerCase() === cleanName.toLowerCase()
-  );
+form label { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: 14px; }
 
-  if (existing) {
-    existing.last_seen_at = new Date().toISOString();
-    existing.visit_count = (existing.visit_count || 1) + 1;
-  } else {
-    data.participants.push({
-      id: data.nextParticipantId++,
-      lesson_id: lessonId,
-      name: cleanName,
-      joined_at: new Date().toISOString(),
-      last_seen_at: new Date().toISOString(),
-      visit_count: 1
-    });
-  }
+input[type="text"], input[type="file"], input[type="password"], textarea {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+}
 
-  saveData(data);
-  res.json({ success: true });
-});
+textarea { font-family: 'JetBrains Mono', monospace; font-size: 13px; resize: vertical; }
 
-// 6) Bitta darsning qatnashuvchilari ro'yxati
-app.get('/api/lessons/:id/participants', (req, res) => {
-  const data = loadData();
-  const lessonId = parseInt(req.params.id, 10);
-  const list = data.participants
-    .filter(p => p.lesson_id === lessonId)
-    .sort((a, b) => new Date(b.last_seen_at) - new Date(a.last_seen_at));
-  res.json(list);
-});
+input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
-// 7) Progress belgilash (bir qatorni mashq qilganda) — endi ism bilan
-app.post('/api/progress', (req, res) => {
-  const data = loadData();
-  const { lesson_id, line_id, name } = req.body;
-  const cleanName = (name || 'Mehmon').trim().slice(0, 40);
+button[type="submit"] {
+  margin-top: 20px;
+  background: var(--accent);
+  color: #06201c;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+}
+button[type="submit"]:hover { background: var(--accent-dark); }
 
-  const existing = data.progress.find(
-    p => p.lesson_id === lesson_id && p.line_id === line_id && p.name.toLowerCase() === cleanName.toLowerCase()
-  );
-  if (existing) {
-    existing.practiced_count += 1;
-    existing.last_practiced_at = new Date().toISOString();
-  } else {
-    data.progress.push({
-      id: data.nextProgressId++,
-      lesson_id,
-      line_id,
-      name: cleanName,
-      practiced_count: 1,
-      last_practiced_at: new Date().toISOString()
-    });
-  }
+#upload-status { margin-top: 12px; font-size: 14px; }
 
-  saveData(data);
-  res.json({ success: true });
-});
+/* ---------- Modal oynalar ---------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 11, 14, 0.6);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
 
-// 8) Bitta foydalanuvchining bitta darsdagi progressi (qaysi qatorlarni mashq qilgan)
-app.get('/api/lessons/:id/my-progress', (req, res) => {
-  const data = loadData();
-  const lessonId = parseInt(req.params.id, 10);
-  const name = (req.query.name || '').trim().toLowerCase();
+.modal-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+  width: 90%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: var(--shadow-hover);
+}
+.modal-box h2 { font-family: 'Space Grotesk', sans-serif; margin: 0 0 6px; font-size: 20px; }
+.modal-box p { margin: 0 0 18px; font-size: 14px; }
+.modal-box input {
+  width: 100%;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px;
+  font-size: 15px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.modal-box input:focus { outline: none; border-color: var(--accent); }
+.modal-box button {
+  width: 100%;
+  background: var(--accent);
+  color: #06201c;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+}
+.modal-box button:hover { background: var(--accent-dark); }
 
-  const practicedLineIds = data.progress
-    .filter(p => p.lesson_id === lessonId && p.name.toLowerCase() === name)
-    .map(p => p.line_id);
+/* ---------- Qatnashuvchilar ---------- */
+.participants-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.participant-chip {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--text);
+}
+.participant-chip.you { border-color: var(--accent); color: var(--accent-dark); font-weight: 600; }
 
-  const totalLines = data.transcript_lines.filter(l => l.lesson_id === lessonId).length;
+/* ---------- Progress bar (pleer ichida) ---------- */
+.progress-bar-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.progress-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+  transition: width 0.3s ease;
+}
+#progress-bar-label { font-size: 12px; font-weight: 600; min-width: 36px; text-align: right; }
 
-  res.json({ practicedLineIds, totalLines });
-});
+/* ---------- Pleer ---------- */
+#back-btn {
+  background: none;
+  border: none;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 20px 0 16px;
+  font-weight: 600;
+}
 
-// 9) Reyting jadvali — barcha foydalanuvchilar bo'yicha faollik
-app.get('/api/leaderboard', (req, res) => {
-  const data = loadData();
+#media-container video, #media-container audio { width: 100%; border-radius: var(--radius); margin-bottom: 20px; }
 
-  const statsByName = {};
+.transcript-list { display: flex; flex-direction: column; gap: 6px; }
 
-  // Har bir mashq qilingan qator uchun umumiy takrorlashlar soni
-  for (const p of data.progress) {
-    const key = p.name.toLowerCase();
-    if (!statsByName[key]) {
-      statsByName[key] = { name: p.name, totalRepeats: 0, lessonsSet: new Set(), lastActive: p.last_practiced_at };
-    }
-    statsByName[key].totalRepeats += p.practiced_count;
-    statsByName[key].lessonsSet.add(p.lesson_id);
-    if (new Date(p.last_practiced_at) > new Date(statsByName[key].lastActive)) {
-      statsByName[key].lastActive = p.last_practiced_at;
-    }
-  }
+.transcript-line {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-card);
+}
+.transcript-line:hover { border-color: var(--accent); }
 
-  // Qatnashgan darslar sonini participants orqali ham hisobga olish (mashq qilmagan, faqat ochgan bo'lsa ham)
-  for (const p of data.participants) {
-    const key = p.name.toLowerCase();
-    if (!statsByName[key]) {
-      statsByName[key] = { name: p.name, totalRepeats: 0, lessonsSet: new Set(), lastActive: p.last_seen_at };
-    }
-    statsByName[key].lessonsSet.add(p.lesson_id);
-  }
+.transcript-line .timestamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 50px;
+}
 
-  const leaderboard = Object.values(statsByName).map(s => ({
-    name: s.name,
-    totalRepeats: s.totalRepeats,
-    lessonsJoined: s.lessonsSet.size,
-    score: s.totalRepeats * 2 + s.lessonsSet.size * 5, // faollik bali: takrorlash + qatnashilgan darslar
-    lastActive: s.lastActive
-  }));
+.transcript-line .content { flex: 1; }
+.transcript-line .en { font-size: 15px; }
+.transcript-line .uz { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
 
-  leaderboard.sort((a, b) => b.score - a.score);
+.transcript-line.active { background: rgba(20, 184, 166, 0.08); border-color: var(--accent); }
+.transcript-line.active .timestamp { color: var(--accent-warm); font-weight: 700; }
+.transcript-line.active .timestamp::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent-warm);
+  margin-right: 6px;
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  res.json(leaderboard);
-});
+.transcript-line.practiced .timestamp::after { content: ' ✓'; color: var(--accent-dark); }
 
-app.listen(PORT, () => {
-  console.log(`Shadowing backend ${PORT}-portda ishlamoqda: http://localhost:${PORT}`);
-});
+.transcript-line .repeat-group {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.transcript-line .repeat-btn {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 18px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 44px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.transcript-line .repeat-btn:hover { color: var(--accent-dark); border-color: var(--accent); }
+.transcript-line .repeat-btn.slow { font-size: 19px; }
+
+/* ---------- Reyting ---------- */
+.leaderboard-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.leaderboard-row:last-child { border-bottom: none; }
+.leaderboard-row.me { background: rgba(20,184,166,0.06); }
+.lb-rank {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  width: 28px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.lb-rank.gold { color: #d4a017; }
+.lb-rank.silver { color: #9aa0a8; }
+.lb-rank.bronze { color: #b5651d; }
+.lb-name { flex: 1; font-weight: 600; }
+.lb-stats { display: flex; gap: 18px; font-size: 13px; color: var(--text-muted); }
+.lb-stats b { color: var(--text); }
+
+/* ---------- Profil ---------- */
+.profile-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow-card);
+  max-width: 480px;
+}
+.profile-box label { font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px; }
+.profile-name-row { display: flex; gap: 10px; }
+.profile-name-row input {
+  flex: 1;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+.profile-name-row button {
+  background: var(--accent);
+  color: #06201c;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.profile-name-row button:hover { background: var(--accent-dark); }
+.profile-stats { margin-top: 24px; display: flex; gap: 24px; flex-wrap: wrap; }
+.profile-stat { display: flex; flex-direction: column; }
+.profile-stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 700; color: var(--accent-dark); }
+.profile-stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ---------- Mobil moslashuv ---------- */
+@media (max-width: 640px) {
+  .topbar { flex-direction: column; gap: 12px; padding: 16px; }
+  .hero { margin: 0 -16px 32px; padding: 36px 16px 28px; }
+  .hero-title { font-size: 28px; }
+  .hero-wave { display: none; }
+  main { padding: 0 16px 60px; }
+  .transcript-line { flex-wrap: wrap; }
+  .transcript-line .repeat-group { width: 100%; justify-content: flex-end; margin-top: 4px; }
+}
