@@ -49,6 +49,7 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage, limits: { fileSize: 300 * 1024 * 1024 } }); // 300MB gacha
+const uploadFields = upload.fields([{ name: 'media', maxCount: 1 }, { name: 'thumbnail', maxCount: 1 }]);
 
 // ============ API ROUTES ============
 
@@ -57,16 +58,19 @@ app.post('/api/admin/check', requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
-// 1) Yangi dars (lesson) yaratish: media fayl + transcript JSON
-app.post('/api/lessons', requireAdmin, upload.single('media'), (req, res) => {
+// 1) Yangi dars (lesson) yaratish: media fayl + transcript JSON + ixtiyoriy rasm
+app.post('/api/lessons', requireAdmin, uploadFields, (req, res) => {
   try {
     const { title, transcript } = req.body;
-    if (!req.file || !title || !transcript) {
+    const mediaFile = req.files && req.files.media ? req.files.media[0] : null;
+    const thumbFile = req.files && req.files.thumbnail ? req.files.thumbnail[0] : null;
+
+    if (!mediaFile || !title || !transcript) {
       return res.status(400).json({ error: 'title, media va transcript majburiy' });
     }
 
     const lines = JSON.parse(transcript); // [{start_time, end_time, text, translation}, ...]
-    const mediaType = req.file.mimetype.startsWith('video') ? 'video' : 'audio';
+    const mediaType = mediaFile.mimetype.startsWith('video') ? 'video' : 'audio';
 
     const data = loadData();
 
@@ -74,8 +78,9 @@ app.post('/api/lessons', requireAdmin, upload.single('media'), (req, res) => {
     data.lessons.push({
       id: lessonId,
       title,
-      media_filename: req.file.filename,
+      media_filename: mediaFile.filename,
       media_type: mediaType,
+      thumbnail_filename: thumbFile ? thumbFile.filename : null,
       created_at: new Date().toISOString()
     });
 
@@ -119,7 +124,59 @@ app.get('/api/lessons/:id', (req, res) => {
   res.json({ ...lesson, lines });
 });
 
-// 4) Darsni o'chirish
+// 4) Darsni tahrirlash (nomi, transcript, ixtiyoriy ravishda media/rasmni almashtirish)
+app.put('/api/lessons/:id', requireAdmin, uploadFields, (req, res) => {
+  try {
+    const data = loadData();
+    const lessonId = parseInt(req.params.id, 10);
+    const lesson = data.lessons.find(l => l.id === lessonId);
+    if (!lesson) return res.status(404).json({ error: 'Dars topilmadi' });
+
+    const { title, transcript } = req.body;
+    const mediaFile = req.files && req.files.media ? req.files.media[0] : null;
+    const thumbFile = req.files && req.files.thumbnail ? req.files.thumbnail[0] : null;
+
+    if (title) lesson.title = title;
+
+    if (mediaFile) {
+      const oldPath = path.join(uploadsDir, lesson.media_filename);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      lesson.media_filename = mediaFile.filename;
+      lesson.media_type = mediaFile.mimetype.startsWith('video') ? 'video' : 'audio';
+    }
+
+    if (thumbFile) {
+      if (lesson.thumbnail_filename) {
+        const oldThumb = path.join(uploadsDir, lesson.thumbnail_filename);
+        if (fs.existsSync(oldThumb)) fs.unlinkSync(oldThumb);
+      }
+      lesson.thumbnail_filename = thumbFile.filename;
+    }
+
+    if (transcript) {
+      const lines = JSON.parse(transcript);
+      data.transcript_lines = data.transcript_lines.filter(l => l.lesson_id !== lessonId);
+      for (const line of lines) {
+        data.transcript_lines.push({
+          id: data.nextLineId++,
+          lesson_id: lessonId,
+          start_time: line.start_time,
+          end_time: line.end_time,
+          text: line.text,
+          translation: line.translation || null
+        });
+      }
+    }
+
+    saveData(data);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server xatosi: ' + err.message });
+  }
+});
+
+// 5) Darsni o'chirish
 app.delete('/api/lessons/:id', requireAdmin, (req, res) => {
   const data = loadData();
   const lessonId = parseInt(req.params.id, 10);
@@ -128,6 +185,10 @@ app.delete('/api/lessons/:id', requireAdmin, (req, res) => {
 
   const filePath = path.join(uploadsDir, lesson.media_filename);
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  if (lesson.thumbnail_filename) {
+    const thumbPath = path.join(uploadsDir, lesson.thumbnail_filename);
+    if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+  }
 
   data.lessons = data.lessons.filter(l => l.id !== lessonId);
   data.transcript_lines = data.transcript_lines.filter(l => l.lesson_id !== lessonId);
