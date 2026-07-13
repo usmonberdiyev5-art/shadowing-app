@@ -137,6 +137,11 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Transcript qatorlarini (JSON) formaga qo'yish uchun matnga aylantirish
+function linesToTranscriptText(lines) {
+  return lines.map(l => `${secondsToLabel(l.start_time)}-${secondsToLabel(l.end_time)} | ${l.text} | ${l.translation || ''}`).join('\n');
+}
+
 // ---------- Deterministik "waveform" generatsiyasi (dars kartochkasi uchun imzo vizuali) ----------
 function seededRandom(seed) {
   let s = seed;
@@ -204,15 +209,22 @@ async function loadLessons() {
       const card = document.createElement('div');
       card.className = 'lesson-card';
       card.style.animationDelay = (idx * 0.05) + 's';
+      const thumbHtml = lesson.thumbnail_filename
+        ? `<img class="lesson-thumb" src="${MEDIA_BASE}/${lesson.thumbnail_filename}" alt="">`
+        : generateWaveformSVG(lesson.title + lesson.id);
       card.innerHTML = `
-        ${isAdmin() ? '<button class="delete-btn" title="O\'chirish">✕</button>' : ''}
-        ${generateWaveformSVG(lesson.title + lesson.id)}
+        ${isAdmin() ? `
+          <div class="card-admin-actions">
+            <button class="icon-btn edit-btn" title="Tahrirlash">✏️</button>
+            <button class="icon-btn delete-btn" title="O'chirish">✕</button>
+          </div>` : ''}
+        ${thumbHtml}
         <span class="badge">${lesson.media_type === 'video' ? '🎬 Video' : '🎧 Audio'}</span>
         <h3>${escapeHtml(lesson.title)}</h3>
         <p class="muted" style="font-size:12px;margin:0;">${new Date(lesson.created_at).toLocaleDateString()}</p>
       `;
       card.addEventListener('click', (e) => {
-        if (e.target.classList.contains('delete-btn')) return;
+        if (e.target.closest('.card-admin-actions')) return;
         openPlayer(lesson.id);
       });
       const deleteBtn = card.querySelector('.delete-btn');
@@ -228,6 +240,13 @@ async function loadLessons() {
           }
         });
       }
+      const editBtn = card.querySelector('.edit-btn');
+      if (editBtn) {
+        editBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          await openEditForm(lesson.id);
+        });
+      }
       container.appendChild(card);
     });
   } catch (err) {
@@ -236,12 +255,55 @@ async function loadLessons() {
 }
 
 // ---------- Yangi dars yuklash formasi ----------
+async function openEditForm(lessonId) {
+  const res = await fetch(`${API_BASE}/lessons/${lessonId}`);
+  const lesson = await res.json();
+
+  editingLessonId = lessonId;
+  document.getElementById('upload-heading').textContent = 'Darsni tahrirlash';
+  document.getElementById('upload-submit-btn').textContent = 'Saqlash';
+  document.getElementById('media-optional-hint').style.display = 'inline';
+  document.getElementById('upload-cancel-edit-btn').style.display = 'inline-block';
+
+  document.getElementById('lesson-title').value = lesson.title;
+  document.getElementById('transcript-input').value = linesToTranscriptText(lesson.lines);
+  document.getElementById('media-file').value = '';
+  document.getElementById('thumbnail-file').value = '';
+
+  switchTab('upload');
+}
+
+function resetUploadForm() {
+  editingLessonId = null;
+  document.getElementById('upload-heading').textContent = "Yangi dars qo'shish";
+  document.getElementById('upload-submit-btn').textContent = 'Darsni yuklash';
+  document.getElementById('media-optional-hint').style.display = 'none';
+  document.getElementById('upload-cancel-edit-btn').style.display = 'none';
+  document.getElementById('upload-form').reset();
+  document.getElementById('upload-status').textContent = '';
+}
+
+document.getElementById('upload-cancel-edit-btn').addEventListener('click', resetUploadForm);
+
+document.getElementById('upload-tab-btn').addEventListener('click', () => {
+  if (!editingLessonId) resetUploadForm();
+});
+
 document.getElementById('upload-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const status = document.getElementById('upload-status');
   const title = document.getElementById('lesson-title').value;
-  const file = document.getElementById('media-file').files[0];
+  const mediaFile = document.getElementById('media-file').files[0];
+  const thumbFile = document.getElementById('thumbnail-file').files[0];
   const transcriptRaw = document.getElementById('transcript-input').value;
+
+  const isEditing = !!editingLessonId;
+
+  if (!isEditing && !mediaFile) {
+    status.textContent = '⚠️ Audio yoki video fayl tanlang.';
+    status.style.color = 'var(--danger)';
+    return;
+  }
 
   const transcript = parseTranscript(transcriptRaw);
   if (transcript.length === 0) {
@@ -252,23 +314,24 @@ document.getElementById('upload-form').addEventListener('submit', async (e) => {
 
   const formData = new FormData();
   formData.append('title', title);
-  formData.append('media', file);
+  if (mediaFile) formData.append('media', mediaFile);
+  if (thumbFile) formData.append('thumbnail', thumbFile);
   formData.append('transcript', JSON.stringify(transcript));
 
-  status.textContent = 'Yuklanmoqda...';
+  status.textContent = isEditing ? 'Saqlanmoqda...' : 'Yuklanmoqda...';
   status.style.color = 'var(--text-muted)';
 
   try {
-    const res = await fetch(`${API_BASE}/lessons`, {
-      method: 'POST',
+    const res = await fetch(`${API_BASE}/lessons${isEditing ? '/' + editingLessonId : ''}`, {
+      method: isEditing ? 'PUT' : 'POST',
       headers: { 'x-admin-password': getAdminPassword() || '' },
       body: formData
     });
     const data = await res.json();
     if (data.success) {
-      status.textContent = '✅ Dars muvaffaqiyatli qo\'shildi!';
+      status.textContent = isEditing ? '✅ Dars yangilandi!' : '✅ Dars muvaffaqiyatli qo\'shildi!';
       status.style.color = 'var(--accent)';
-      document.getElementById('upload-form').reset();
+      resetUploadForm();
       switchTab('lessons');
     } else {
       status.textContent = '❌ Xato: ' + (data.error || 'Nomalum xato');
@@ -285,6 +348,7 @@ let currentLesson = null;
 let mediaEl = null;
 let practicedLineIds = new Set();
 let slowModeEndTime = null;
+let editingLessonId = null;
 
 async function openPlayer(lessonId) {
   const res = await fetch(`${API_BASE}/lessons/${lessonId}`);
