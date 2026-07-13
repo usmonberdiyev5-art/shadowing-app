@@ -14,10 +14,12 @@ function defaultData() {
     nextLineId: 1,
     nextProgressId: 1,
     nextParticipantId: 1,
+    nextVocabId: 1,
     lessons: [],
     transcript_lines: [],
     progress: [],
-    participants: []
+    participants: [],
+    vocabulary: []
   };
 }
 
