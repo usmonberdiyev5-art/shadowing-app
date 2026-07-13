@@ -83,7 +83,7 @@ function switchTab(tabName) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-' + tabName).classList.add('active');
-  if (tabName !== 'player') stopActiveMedia();
+  if (tabName !== 'player' && tabName !== 'vocabulary') stopActiveMedia();
   if (tabName === 'lessons') loadLessons();
   if (tabName === 'leaderboard') loadLeaderboard();
   if (tabName === 'profile') loadProfile();
@@ -97,6 +97,9 @@ document.getElementById('back-btn').addEventListener('click', () => {
 document.querySelectorAll('[data-back]').forEach(btn => {
   btn.addEventListener('click', () => switchTab('lessons'));
 });
+
+document.getElementById('vocab-open-btn').addEventListener('click', () => openVocabulary());
+document.getElementById('vocab-back-btn').addEventListener('click', () => switchTab('player'));
 
 // ---------- Vaqt yordamchi funksiyalari ----------
 function timeToSeconds(str) {
@@ -564,3 +567,105 @@ document.getElementById('profile-name-save').addEventListener('click', () => {
 
 // ---------- Boshlang'ich yuklash ----------
 loadLessons();
+
+// ---------- Vocabulary (Lug'at kartochkalari) ----------
+let vocabList = [];
+let vocabIndex = 0;
+
+async function openVocabulary() {
+  document.getElementById('vocab-toggle-admin-btn').style.display = isAdmin() ? 'inline-block' : 'none';
+  document.getElementById('vocab-admin-panel').style.display = 'none';
+  await loadVocabulary();
+  switchTab('vocabulary');
+}
+
+async function loadVocabulary() {
+  const area = document.getElementById('vocab-flashcard-area');
+  area.innerHTML = '<p class="muted">Yuklanmoqda...</p>';
+  try {
+    const res = await fetch(`${API_BASE}/lessons/${currentLesson.id}/vocabulary`);
+    vocabList = await res.json();
+    vocabIndex = 0;
+
+    // Admin panelidagi textarea'ni ham joriy so'zlar bilan to'ldiramiz
+    const vocabInput = document.getElementById('vocab-input');
+    vocabInput.value = vocabList.map(v => `${v.word} | ${v.translation}`).join('\n');
+
+    renderVocabCard();
+  } catch (err) {
+    area.innerHTML = '<p class="muted">Lug\'atni yuklab bo\'lmadi.</p>';
+  }
+}
+
+function renderVocabCard() {
+  const area = document.getElementById('vocab-flashcard-area');
+
+  if (vocabList.length === 0) {
+    area.innerHTML = '<div class="vocab-empty">Bu dars uchun hali lug\'at qo\'shilmagan.</div>';
+    return;
+  }
+
+  const item = vocabList[vocabIndex];
+  area.innerHTML = `
+    <div class="vocab-flashcard-wrap">
+      <span class="vocab-counter">${vocabIndex + 1} / ${vocabList.length}</span>
+      <div class="vocab-card-scene">
+        <div class="vocab-card" id="vocab-card">
+          <div class="vocab-card-face vocab-card-front">
+            <span class="vocab-word">${escapeHtml(item.word)}</span>
+            <span class="vocab-hint">Tarjimani ko'rish uchun bosing</span>
+          </div>
+          <div class="vocab-card-face vocab-card-back">
+            <span class="vocab-translation">${escapeHtml(item.translation)}</span>
+            <span class="vocab-hint">Yana bosing</span>
+          </div>
+        </div>
+      </div>
+      <div class="vocab-nav">
+        <button class="vocab-nav-btn" id="vocab-prev-btn" ${vocabIndex === 0 ? 'disabled' : ''}>‹</button>
+        <button class="vocab-nav-btn" id="vocab-next-btn" ${vocabIndex === vocabList.length - 1 ? 'disabled' : ''}>›</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('vocab-card').addEventListener('click', () => {
+    document.getElementById('vocab-card').classList.toggle('flipped');
+  });
+  document.getElementById('vocab-prev-btn').addEventListener('click', () => {
+    if (vocabIndex > 0) { vocabIndex--; renderVocabCard(); }
+  });
+  document.getElementById('vocab-next-btn').addEventListener('click', () => {
+    if (vocabIndex < vocabList.length - 1) { vocabIndex++; renderVocabCard(); }
+  });
+}
+
+document.getElementById('vocab-toggle-admin-btn').addEventListener('click', () => {
+  const panel = document.getElementById('vocab-admin-panel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('vocab-save-btn').addEventListener('click', async () => {
+  const text = document.getElementById('vocab-input').value;
+  const status = document.getElementById('vocab-save-status');
+  status.textContent = 'Saqlanmoqda...';
+  status.style.color = 'var(--text-muted)';
+  try {
+    const res = await fetch(`${API_BASE}/lessons/${currentLesson.id}/vocabulary`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': getAdminPassword() || '' },
+      body: JSON.stringify({ text })
+    });
+    const data = await res.json();
+    if (data.success) {
+      status.textContent = `✅ Saqlandi (${data.count} ta so'z)`;
+      status.style.color = 'var(--accent)';
+      await loadVocabulary();
+    } else {
+      status.textContent = '❌ Xato: ' + (data.error || "noma'lum xato");
+      status.style.color = 'var(--danger)';
+    }
+  } catch (err) {
+    status.textContent = "❌ Serverga ulanib bo'lmadi.";
+    status.style.color = 'var(--danger)';
+  }
+});
