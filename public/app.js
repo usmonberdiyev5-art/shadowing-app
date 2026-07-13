@@ -356,6 +356,12 @@ function updateProgressBar() {
 function renderTranscript() {
   const list = document.getElementById('transcript-list');
   list.innerHTML = '';
+
+  if (!currentLesson.lines || currentLesson.lines.length === 0) {
+    list.innerHTML = '<p class="muted">⚠️ Bu darsda transcript topilmadi. Ehtimol dars yuklashda muammo bo\'lgan — uni o\'chirib qayta yuklab ko\'ring.</p>';
+    return;
+  }
+
   currentLesson.lines.forEach(line => {
     const row = document.createElement('div');
     row.className = 'transcript-line' + (practicedLineIds.has(line.id) ? ' practiced' : '');
