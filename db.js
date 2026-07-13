@@ -2,7 +2,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const DB_FILE = path.join(__dirname, 'shadowing-data.json');
+// DATA_DIR muhit o'zgaruvchisi orqali doimiy saqlash joyi belgilanadi (Railway Volume uchun)
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+const DB_FILE = path.join(DATA_DIR, 'shadowing-data.json');
 
 function defaultData() {
   return {
