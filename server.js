@@ -326,6 +326,47 @@ app.get('/api/leaderboard', (req, res) => {
   res.json(leaderboard);
 });
 
+// 10) Bitta darsning lug'atini olish
+app.get('/api/lessons/:id/vocabulary', (req, res) => {
+  const data = loadData();
+  const lessonId = parseInt(req.params.id, 10);
+  const list = data.vocabulary.filter(v => v.lesson_id === lessonId);
+  res.json(list);
+});
+
+// 11) Darsning lug'atini saqlash/yangilash (admin) — "so'z | tarjima" formatida matn yuboriladi
+app.post('/api/lessons/:id/vocabulary', requireAdmin, (req, res) => {
+  const data = loadData();
+  const lessonId = parseInt(req.params.id, 10);
+  const lesson = data.lessons.find(l => l.id === lessonId);
+  if (!lesson) return res.status(404).json({ error: 'Dars topilmadi' });
+
+  const { text } = req.body;
+  if (typeof text !== 'string') return res.status(400).json({ error: "Matn yuborilmadi" });
+
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const newWords = [];
+  for (const line of lines) {
+    const parts = line.split('|').map(s => s.trim());
+    if (parts.length < 2 || !parts[0] || !parts[1]) continue;
+    newWords.push({ word: parts[0], translation: parts[1] });
+  }
+
+  // Shu darsning eski lug'atini butunlay yangisi bilan almashtiramiz
+  data.vocabulary = data.vocabulary.filter(v => v.lesson_id !== lessonId);
+  for (const w of newWords) {
+    data.vocabulary.push({
+      id: data.nextVocabId++,
+      lesson_id: lessonId,
+      word: w.word,
+      translation: w.translation
+    });
+  }
+
+  saveData(data);
+  res.json({ success: true, count: newWords.length });
+});
+
 app.listen(PORT, () => {
   console.log(`Shadowing backend ${PORT}-portda ishlamoqda: http://localhost:${PORT}`);
 });
