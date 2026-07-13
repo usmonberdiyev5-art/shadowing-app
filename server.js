@@ -24,12 +24,21 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
 // Yuklangan fayllarni ochiq qilish (audio/video pleer uchun)
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+// DATA_DIR muhit o'zgaruvchisi orqali doimiy saqlash joyi belgilanadi (Railway Volume uchun)
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const uploadsDir = path.join(DATA_DIR, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 
 // Frontend fayllarini xizmat qilish (index.html, style.css, app.js)
-app.use(express.static(path.join(__dirname, 'public')));
+// Kesh muammolarining oldini olish uchun har doim eng yangi versiya yuboriladi
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+}));
 
 // --- Fayl yuklash sozlamalari (multer) ---
 const storage = multer.diskStorage({
