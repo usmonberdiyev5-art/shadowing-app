@@ -136,8 +136,30 @@
       <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-bar-fill"></div></div>
       <span id="progress-bar-label" class="muted">0%</span>
     </div>
+    <button id="vocab-open-btn" class="vocab-open-btn">📚 Lug'at kartochkalari</button>
     <div id="participants-box" class="participants-box"></div>
     <div id="transcript-list" class="transcript-list"></div>
+  </section>
+
+  <!-- VOCABULARY (LUG'AT) -->
+  <section id="tab-vocabulary" class="tab-content">
+    <button id="vocab-back-btn">← Darsga qaytish</button>
+    <h2>📚 Lug'at kartochkalari</h2>
+
+    <button id="vocab-toggle-admin-btn" style="display:none;">✏️ So'zlarni tahrirlash</button>
+
+    <div id="vocab-admin-panel" class="vocab-admin-panel" style="display:none;">
+      <label>So'zlar (har bir qatorda: <code>so'z | tarjima</code>)</label>
+      <textarea id="vocab-input" rows="8" placeholder="teacher | o'qituvchi
+conclusion | xulosa
+motivation | motivatsiya"></textarea>
+      <button id="vocab-save-btn">Saqlash</button>
+      <p id="vocab-save-status" class="muted"></p>
+    </div>
+
+    <div id="vocab-flashcard-area">
+      <p class="muted">Yuklanmoqda...</p>
+    </div>
   </section>
 
 </main>
