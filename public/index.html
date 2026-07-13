@@ -103,22 +103,26 @@
     </div>
   </section>
 
-  <!-- YANGI DARS QO'SHISH -->
+  <!-- YANGI DARS QO'SHISH / TAHRIRLASH -->
   <section id="tab-upload" class="tab-content">
     <button class="section-back-btn" data-back>← Darslarga qaytish</button>
-    <h2>Yangi dars qo'shish</h2>
+    <h2 id="upload-heading">Yangi dars qo'shish</h2>
     <form id="upload-form">
       <label>Dars nomi</label>
       <input type="text" id="lesson-title" placeholder="Masalan: IELTS Listening - Part 2" required>
 
-      <label>Audio yoki Video fayl</label>
-      <input type="file" id="media-file" accept="audio/*,video/*" required>
+      <label>Audio yoki Video fayl <span id="media-optional-hint" style="display:none;">(tahrirlashda ixtiyoriy — bo'sh qoldirsangiz eskisi qoladi)</span></label>
+      <input type="file" id="media-file" accept="audio/*,video/*">
+
+      <label>Kartochka rasmi (ixtiyoriy, kvadrat shaklda tavsiya etiladi)</label>
+      <input type="file" id="thumbnail-file" accept="image/*">
 
       <label>Transcript (har bir qatorda: <code>00:00-00:05 | Matn | Tarjima</code>)</label>
       <textarea id="transcript-input" rows="10" placeholder="00:00-00:04 | After several years of teaching | Bir necha yillik o'qituvchilikdan so'ng
 00:04-00:09 | I came to the conclusion that... | Men shunday xulosaga keldimki..."></textarea>
 
-      <button type="submit">Darsni yuklash</button>
+      <button type="submit" id="upload-submit-btn">Darsni yuklash</button>
+      <button type="button" id="upload-cancel-edit-btn" style="display:none; background:transparent; color:var(--text-muted); border:1px solid var(--line); margin-top:8px;">Tahrirlashni bekor qilish</button>
     </form>
     <p id="upload-status"></p>
   </section>
